@@ -1,0 +1,44 @@
+# dependências
+node_modules
+.pnp
+.pnp.js
+
+# build
+.next
+out
+build
+next-env.d.ts
+*.tsbuildinfo
+
+# ambiente
+.env
+.env.local
+.env*.local
+
+# testes
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
+
+# sistema
+.DS_Store
+*.pem
+.vercel
+
+# fontes de asset bruto (não versionar: ~1.8 GB)
+/content-1
+/content-2
+/Manual-IDV-WineGarden.pdf
+/OCEANO_APP PV_IDENTIDADE VISUAL_WINE GARDEN.pdf
+
+# Capturas da auditoria visual — regeradas por `npm run qa:visual`.
+/qa
+
+# ATENÇÃO: /public/img NÃO é ignorado, de propósito.
+#
+# São os derivados de `npm run assets:images` (82 MB, 200 fotos otimizadas).
+# Poderiam ser tratados como build artifact, mas a Vercel constrói a partir do
+# repositório e os originais (1,8 GB em /content-1 e /content-2) não estão
+# aqui — sem estes arquivos versionados o site sobe em produção sem nenhuma
+# fotografia. Nenhum passa de 1 MB.

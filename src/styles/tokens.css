@@ -1,0 +1,303 @@
+/* =========================================================================
+   WINE GARDEN — DESIGN TOKENS
+   Fonte de verdade: Manual de Identidade Visual + apresentação OCEANO.
+   Nada de cor, escala ou tempo deve ser escrito à mão fora deste arquivo.
+   ========================================================================= */
+
+:root {
+  /* ---------------------------------------------------------------------
+     1. PALETA OFICIAL
+     Os seis valores da identidade. Nunca alterar os hex.
+     --------------------------------------------------------------------- */
+  --uva: #3f0a25;
+  --granada: #5b0718;
+  --purpura: #891a3d;
+  --bege: #c7ae9a;
+  --oliva: #414417;
+  --offwhite: #f7f9ea;
+
+  /* Derivadas — só para profundidade e véus. Nunca para superfícies chapadas. */
+  --uva-900: #2a0619;
+  --uva-700: #33081e;
+  --granada-800: #4a0513;
+  --purpura-600: #6d1531;
+  --oliva-800: #2f3111;
+  --oliva-600: #565a1f;
+  --bege-300: #ddc9b8;
+  --bege-100: #ece0d5;
+  --offwhite-dim: #eceedd;
+
+  /* ---------------------------------------------------------------------
+     2. ATMOSFERAS
+     O site não é bordô do começo ao fim: ele troca de pele. Cada seção
+     declara data-atmosphere e herda um jogo completo de papéis semânticos.
+     Os papéis (surface/ink/accent…) são o que os componentes consomem —
+     um componente nunca cita --granada diretamente.
+     --------------------------------------------------------------------- */
+  --surface: var(--offwhite);
+  --surface-raised: #ffffff;
+  --surface-sunken: var(--offwhite-dim);
+  --ink: var(--uva);
+  /*
+   * --ink-faint é TEXTO, não decoração: rótulos de apoio, coordenadas,
+   * contagens. Por isso as proporções abaixo não são estéticas — são o mínimo
+   * medido para cada atmosfera passar em 4,5:1 (WCAG 2.2 AA, 1.4.3).
+   * Aferido com scripts/qa-contrast.mjs; clarear qualquer um destes valores
+   * reprova o critério. Para filetes e molduras, use --rule.
+   */
+  --ink-muted: color-mix(in oklab, var(--uva) 72%, var(--offwhite));
+  --ink-faint: color-mix(in oklab, var(--uva) 62%, var(--offwhite));
+  --accent: var(--purpura);
+  --accent-ink: var(--offwhite);
+  --rule: color-mix(in oklab, var(--uva) 18%, transparent);
+  --rule-strong: color-mix(in oklab, var(--uva) 34%, transparent);
+  --trace: var(--purpura); /* cor da linha pontilhada da marca */
+  --overlay-scrim: color-mix(in oklab, var(--uva) 55%, transparent);
+}
+
+/* Editorial claro — o padrão. Manifesto, cardápio, explorador. */
+[data-atmosphere='editorial'] {
+  --surface: var(--offwhite);
+  --surface-raised: #ffffff;
+  --surface-sunken: var(--offwhite-dim);
+  --ink: var(--uva);
+  --ink-muted: color-mix(in oklab, var(--uva) 72%, var(--offwhite));
+  --ink-faint: color-mix(in oklab, var(--uva) 62%, var(--offwhite));
+  --accent: var(--purpura);
+  --accent-ink: var(--offwhite);
+  --rule: color-mix(in oklab, var(--uva) 18%, transparent);
+  --rule-strong: color-mix(in oklab, var(--uva) 34%, transparent);
+  --trace: var(--purpura);
+}
+
+/* Noturna — hero, gastronomia, pessoas. Profundidade e fotografia. */
+[data-atmosphere='noturna'] {
+  --surface: var(--uva);
+  --surface-raised: var(--uva-700);
+  --surface-sunken: var(--uva-900);
+  --ink: var(--offwhite);
+  --ink-muted: color-mix(in oklab, var(--offwhite) 78%, var(--uva));
+  --ink-faint: color-mix(in oklab, var(--offwhite) 56%, var(--uva));
+  --accent: var(--bege);
+  --accent-ink: var(--uva);
+  --rule: color-mix(in oklab, var(--offwhite) 20%, transparent);
+  --rule-strong: color-mix(in oklab, var(--offwhite) 40%, transparent);
+  --trace: var(--bege);
+}
+
+/* Terroir — o Garden, origem, natureza. Verde oliva como terra. */
+[data-atmosphere='terroir'] {
+  --surface: var(--oliva);
+  --surface-raised: var(--oliva-600);
+  --surface-sunken: var(--oliva-800);
+  --ink: var(--offwhite);
+  --ink-muted: color-mix(in oklab, var(--offwhite) 80%, var(--oliva));
+  --ink-faint: color-mix(in oklab, var(--offwhite) 66%, var(--oliva));
+  --accent: var(--bege);
+  --accent-ink: var(--oliva-800);
+  --rule: color-mix(in oklab, var(--offwhite) 22%, transparent);
+  --rule-strong: color-mix(in oklab, var(--offwhite) 42%, transparent);
+  --trace: var(--bege);
+}
+
+/* Intensa — Wine Match, reserva. O momento de decisão. */
+[data-atmosphere='intensa'] {
+  --surface: var(--granada);
+  --surface-raised: var(--purpura-600);
+  --surface-sunken: var(--granada-800);
+  --ink: var(--offwhite);
+  --ink-muted: color-mix(in oklab, var(--offwhite) 80%, var(--granada));
+  --ink-faint: color-mix(in oklab, var(--offwhite) 60%, var(--granada));
+  --accent: var(--bege);
+  --accent-ink: var(--granada);
+  --rule: color-mix(in oklab, var(--offwhite) 22%, transparent);
+  --rule-strong: color-mix(in oklab, var(--offwhite) 42%, transparent);
+  --trace: var(--bege);
+}
+
+/* Bege — respiro entre atmosferas. Experiências, eventos. */
+[data-atmosphere='bege'] {
+  --surface: var(--bege);
+  --surface-raised: var(--bege-100);
+  --surface-sunken: var(--bege-300);
+  --ink: var(--uva);
+  --ink-muted: color-mix(in oklab, var(--uva) 80%, var(--bege));
+  --ink-faint: color-mix(in oklab, var(--uva) 72%, var(--bege));
+  --accent: var(--granada);
+  --accent-ink: var(--offwhite);
+  --rule: color-mix(in oklab, var(--uva) 22%, transparent);
+  --rule-strong: color-mix(in oklab, var(--uva) 42%, transparent);
+  --trace: var(--granada);
+}
+
+:root {
+  /* ---------------------------------------------------------------------
+     3. TIPOGRAFIA
+     Instrument Serif carrega a voz editorial; JetBrains Mono carrega a
+     interface. O contraste entre as duas é a assinatura digital da marca.
+     As famílias são injetadas por next/font em src/lib/fonts.ts.
+     --------------------------------------------------------------------- */
+  --font-serif: var(--font-instrument-serif), 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Escala display — deliberadamente fora da escala de landing page SaaS.
+     Os limites são calibrados para 320 px (mínimo) e 1728 px (máximo). */
+  --step-mega: clamp(4.25rem, 20vw, 19rem);
+  --step-1: clamp(2.9rem, 10.5vw, 10rem);
+  --step-2: clamp(2.15rem, 6.4vw, 5.25rem);
+  --step-3: clamp(1.7rem, 4vw, 3.15rem);
+  --step-4: clamp(1.35rem, 2.6vw, 2.1rem);
+
+  /* Escala de texto corrido */
+  --text-lg: clamp(1.05rem, 1.35vw, 1.35rem);
+  --text-md: clamp(0.975rem, 1.05vw, 1.1rem);
+  --text-sm: clamp(0.875rem, 0.9vw, 0.95rem);
+
+  /* Escala mono — interface, rótulos, números, coordenadas */
+  --mono-lg: clamp(0.875rem, 1vw, 1rem);
+  --mono-md: clamp(0.75rem, 0.82vw, 0.8125rem);
+  --mono-sm: clamp(0.6875rem, 0.72vw, 0.75rem);
+  --mono-xs: 0.625rem;
+
+  /* O manual especifica entrelinha ~0,85 do corpo para títulos e ~1,55 para
+     texto corrido, em medida de ~50 caracteres (p.8). */
+  --leading-display: 0.85;
+  --leading-title: 1.02;
+  --leading-body: 1.55;
+  --leading-mono: 1.45;
+
+  /* O manual escreve "Instrument Serif -25" e "JetBrains Mono maiúsculas -25":
+     -25 é a unidade de entreletras do Illustrator (1/1000 em) = -0.025em.
+     Texto corrido não leva ajuste. */
+  --tracking-display: -0.025em;
+  --tracking-title: -0.025em;
+  --tracking-subtitle: -0.025em;
+  --tracking-body: 0;
+  --tracking-mono: 0.02em;
+  /* Adaptação deliberada ao meio digital: abaixo de ~13 px o -25 do manual
+     fecha demais o mono em caixa alta e prejudica a legibilidade em tela.
+     Micro-rótulos abrem; subtítulos em corpo grande seguem o manual. */
+  --tracking-label: 0.14em;
+
+  /* ---------------------------------------------------------------------
+     4. ESPAÇO
+     Passo base de 8 px em escala não-linear, com folgas fluidas para o
+     ritmo editorial entre seções.
+     --------------------------------------------------------------------- */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
+  --space-2xl: 6rem;
+  --space-3xl: 9rem;
+
+  --section-y: clamp(5rem, 12vh, 11rem);
+  --section-y-tight: clamp(3.5rem, 8vh, 7rem);
+  --gutter: clamp(1.125rem, 4.2vw, 4.5rem);
+
+  /* ---------------------------------------------------------------------
+     5. CONTAINERS E GRID
+     --------------------------------------------------------------------- */
+  --container-max: 1728px;
+  --container-editorial: 1180px; /* medida confortável para texto corrido */
+  --container-prose: 62ch;
+  --grid-columns: 12;
+  --grid-gap: clamp(0.875rem, 1.6vw, 1.75rem);
+
+  /* ---------------------------------------------------------------------
+     6. RAIOS
+     A marca é art déco e geométrica: raio é exceção, não regra.
+     Fotografia editorial é edge-to-edge. Raio existe só em superfícies
+     de interface (chips, campos, cartões de dados).
+     --------------------------------------------------------------------- */
+  --radius-none: 0;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-pill: 999px;
+
+  /* ---------------------------------------------------------------------
+     7. CAMADAS
+     Uma escala nomeada evita a guerra de z-index: 9999.
+     --------------------------------------------------------------------- */
+  --z-below: -1;
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 100;
+  --z-header: 200;
+  --z-cursor: 250;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-preloader: 600;
+
+  /* ---------------------------------------------------------------------
+     8. MOTION
+     Um easing só para tudo deixa o site sem sotaque. Aqui há três:
+     entrada (expo out), transição de estado (in-out) e máscara (quase
+     mecânica, para revelações de imagem).
+     --------------------------------------------------------------------- */
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-mask: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-out-soft: cubic-bezier(0.33, 1, 0.68, 1);
+
+  --dur-instant: 120ms;
+  --dur-fast: 240ms;
+  --dur-base: 420ms;
+  --dur-slow: 720ms;
+  --dur-cinema: 1200ms;
+
+  /* Multiplicador global: vira 0 sob prefers-reduced-motion e permite que
+     JS e CSS respeitem a preferência com um só switch. */
+  --motion-scale: 1;
+
+  /* ---------------------------------------------------------------------
+     9. TRAÇO — a linha pontilhada da identidade
+     --------------------------------------------------------------------- */
+  --trace-width: 1.25px;
+  --trace-dash: 5 7;
+
+  /* ---------------------------------------------------------------------
+     10. VIEWPORT
+     dvh no lugar de vh: o Safari do iPhone recolhe a barra de endereço e
+     100vh estoura a tela. svh é usado onde o layout não pode saltar.
+     --------------------------------------------------------------------- */
+  --vh-full: 100dvh;
+  --vh-stable: 100svh;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  --header-h: 4.5rem;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-h: 5.5rem;
+  }
+}
+
+/* =========================================================================
+   BREAKPOINTS (referência — CSS Modules usam os literais)
+     sm   480px   celular grande
+     md   768px   tablet retrato
+     lg   1024px  tablet paisagem / notebook pequeno
+     xl   1280px  desktop
+     2xl  1600px  desktop grande
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-scale: 0;
+    --dur-instant: 1ms;
+    --dur-fast: 1ms;
+    --dur-base: 1ms;
+    --dur-slow: 1ms;
+    --dur-cinema: 1ms;
+  }
+}

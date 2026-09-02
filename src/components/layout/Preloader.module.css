@@ -1,0 +1,27 @@
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-preloader);
+  display: grid;
+  place-items: center;
+  background-color: var(--uva);
+  color: var(--bege);
+  /* Sem isto o gesto de sair para cima expõe a página por baixo antes da hora. */
+  will-change: transform;
+}
+
+.trace {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  block-size: 40vmin;
+  color: var(--bege);
+  opacity: 0.55;
+}
+
+.mark {
+  position: relative;
+  z-index: 1;
+  color: var(--offwhite);
+}

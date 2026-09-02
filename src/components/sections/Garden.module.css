@@ -1,0 +1,190 @@
+.section {
+  overflow: hidden;
+  padding-block-end: 0;
+}
+
+.inner {
+  display: grid;
+  gap: var(--space-2xl);
+}
+
+/* ------------------------------------------------------------------ cabeça */
+
+.head {
+  display: grid;
+  gap: var(--space-md);
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+.titleWrap {
+  position: relative;
+}
+
+.title {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0;
+}
+
+.lineTop {
+  display: block;
+}
+
+/* Abre o vão por onde a linha pontilhada cruza. */
+.lineBottom {
+  display: block;
+  margin-inline-start: clamp(1.25rem, 10vw, 9rem);
+}
+
+.mask {
+  display: block;
+  overflow: hidden;
+  /* O "ç" de "conexões" desce abaixo da linha de base. */
+  padding-block-end: 0.16em;
+  margin-block-end: -0.16em;
+}
+
+.word {
+  display: block;
+  color: var(--ink);
+}
+
+.italic {
+  font-style: italic;
+  color: var(--bege);
+}
+
+.traceSlot {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 34%;
+  block-size: 42%;
+  z-index: 0;
+  color: var(--trace);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------- composição */
+
+.composition {
+  display: grid;
+  gap: var(--space-lg);
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+.copy {
+  display: grid;
+  gap: var(--space-md);
+  align-content: start;
+  max-width: 52ch;
+}
+
+.notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+  margin-block-start: var(--space-2xs);
+}
+
+/* Um filete curto antes de cada nota — vocabulário de legenda, não de bullet. */
+.notes li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notes li::before {
+  content: '';
+  inline-size: 1.25rem;
+  block-size: 1px;
+  background-color: var(--rule-strong);
+  flex: none;
+}
+
+/*
+ * Em telas estreitas a composição vira uma pilha simples: as fotos pequenas
+ * ficam lado a lado, e o resto empilha. Assimetria em 360px vira desalinho.
+ */
+.small,
+.smallLow {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .composition {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tall,
+  .copy,
+  .wide {
+    grid-column: 1 / -1;
+  }
+
+  .small,
+  .smallLow {
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
+  .composition {
+    /* Doze colunas dão a liberdade de deslocar cada peça meia coluna — é o
+       que produz a assimetria sem virar bagunça. */
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-lg) var(--grid-gap);
+    align-items: start;
+  }
+
+  .tall {
+    grid-column: 1 / span 5;
+    grid-row: 1 / span 2;
+    /* Sobe além do topo da composição: sangra por baixo do título. */
+    margin-block-start: calc(var(--space-2xl) * -1);
+  }
+
+  .copy {
+    grid-column: 7 / span 5;
+    grid-row: 1;
+    padding-block-start: var(--space-lg);
+  }
+
+  .wide {
+    grid-column: 7 / span 6;
+    grid-row: 2;
+  }
+
+  .small {
+    grid-column: 1 / span 3;
+    grid-row: 3;
+    /* Desce para não alinhar a base com a foto ao lado. */
+    margin-block-start: var(--space-lg);
+  }
+
+  .smallLow {
+    grid-column: 4 / span 3;
+    grid-row: 3;
+    margin-block-start: var(--space-3xl);
+  }
+}
+
+/* ---------------------------------------------------------------- sangria */
+
+.bleed {
+  /* Ponta a ponta, ignorando o container: é a imagem que se reconhece da rua. */
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tall {
+    margin-block-start: 0;
+  }
+}

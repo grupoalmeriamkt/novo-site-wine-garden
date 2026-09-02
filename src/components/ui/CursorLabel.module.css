@@ -1,0 +1,33 @@
+.cursor {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: var(--z-cursor);
+  pointer-events: none;
+  /* O deslocamento tira o rótulo de baixo da seta do sistema. */
+  translate: calc(var(--x, 0px) + 18px) calc(var(--y, 0px) + 18px);
+  opacity: 0;
+  scale: 0.9;
+  transition:
+    opacity var(--dur-fast) var(--ease-brand),
+    scale var(--dur-fast) var(--ease-brand);
+}
+
+.cursor[data-active] {
+  opacity: 1;
+  scale: 1;
+}
+
+.label {
+  display: block;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--purpura);
+  color: var(--offwhite);
+  font-family: var(--font-mono);
+  font-size: var(--mono-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  white-space: nowrap;
+}

@@ -1,0 +1,106 @@
+.inner {
+  display: grid;
+  gap: var(--space-2xl);
+  width: 100%;
+  max-width: var(--container-editorial);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+.head {
+  display: grid;
+  gap: var(--space-sm);
+  max-width: 52ch;
+}
+
+.italic {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.lead {
+  max-width: 56ch;
+}
+
+/* ----------------------------------------------------------------- tabela */
+
+.tabela {
+  display: grid;
+  border-block-start: 1px solid var(--rule);
+}
+
+/*
+ * Duas colunas no desktop: a categoria fica como uma coluna de índice, e a
+ * lista de pratos corre ao lado — a leitura de um sumário editorial, não a de
+ * uma planilha. No mobile empilha, com a categoria sempre no topo.
+ */
+.linha {
+  display: grid;
+  gap: var(--space-2xs) var(--space-xl);
+  padding-block: var(--space-md);
+  border-block-end: 1px solid var(--rule);
+}
+
+@media (min-width: 48rem) {
+  .linha {
+    grid-template-columns: minmax(14rem, 22%) 1fr;
+    align-items: baseline;
+  }
+}
+
+.coluna {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-sm);
+}
+
+.categoria {
+  font-family: var(--font-display);
+  font-size: var(--step-4);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-display);
+  font-weight: 400;
+  margin: 0;
+}
+
+/*
+ * O alvo tem 44px de altura mesmo quando o nome da categoria é curto — é o
+ * mínimo confortável no toque, e o critério que a suíte de acessibilidade
+ * verifica. Por isso o sublinhado é feito com `text-decoration` e não com um
+ * gradiente ancorado no rodapé da caixa: com a caixa mais alta que o texto, o
+ * gradiente descolaria da linha de base.
+ */
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.16em;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--dur-fast) var(--ease-brand);
+}
+
+.link:hover,
+.link:focus-visible {
+  text-decoration-color: currentColor;
+}
+
+.contagem {
+  color: var(--ink-faint);
+}
+
+.pratos {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--ink-muted);
+  text-wrap: pretty;
+}
+
+.nota {
+  max-width: 56ch;
+  color: var(--ink-faint);
+}

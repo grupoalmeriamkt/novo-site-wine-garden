@@ -1,0 +1,65 @@
+.frame {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  background-color: var(--surface-sunken);
+  /* Fotografia editorial é edge-to-edge: raio é exceção, não padrão. */
+  border-radius: var(--radius-none);
+}
+
+.media {
+  position: absolute;
+  inset: 0;
+  /* Só transform e opacity animam aqui — nada que force layout. */
+  will-change: transform;
+}
+
+.img {
+  object-fit: cover;
+  object-position: center;
+}
+
+/* A cortina começa COBRINDO e o GSAP a retira.
+   O estado inicial precisa ser o de cobertura, não o contrário: o React só
+   posiciona a cortina depois de hidratar, e entre o primeiro paint e a
+   hidratação a foto apareceria descoberta para em seguida ser coberta —
+   um flash visível justamente nas imagens grandes.
+   Se o JS nunca rodar, a regra html:not(.js) abaixo devolve a foto. */
+.curtain {
+  position: absolute;
+  inset: 0;
+  background-color: var(--surface);
+  transform: translateY(0);
+  pointer-events: none;
+}
+
+:global(html:not(.js)) .curtain {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .curtain {
+    display: none;
+  }
+
+  .media {
+    will-change: auto;
+  }
+}
+
+/* ------------------------------------------------------- estado de falha */
+
+.missing {
+  display: grid;
+  place-items: center;
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--rule);
+}
+
+.missingMark {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}

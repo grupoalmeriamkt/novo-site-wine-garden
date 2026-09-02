@@ -1,0 +1,211 @@
+.section {
+  overflow: hidden;
+}
+
+.inner {
+  display: grid;
+  gap: var(--space-2xl);
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+@media (min-width: 1024px) {
+  .inner {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+    gap: var(--space-3xl);
+    align-items: start;
+  }
+}
+
+/* ------------------------------------------------------------------ aside */
+
+.aside {
+  display: grid;
+  gap: var(--space-md);
+  align-content: start;
+}
+
+.title em {
+  font-style: italic;
+  color: var(--bege);
+}
+
+.photo {
+  margin-block-start: var(--space-sm);
+  max-width: 34rem;
+}
+
+.direct {
+  display: grid;
+  gap: 0.35rem;
+  margin-block-start: var(--space-sm);
+}
+
+.directLink {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--ink);
+  padding-block: 0.6rem;
+  border-block-end: 1px solid var(--rule-strong);
+  justify-self: start;
+  transition: border-color var(--dur-fast) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .directLink:hover {
+    border-color: var(--ink);
+  }
+}
+
+/* ---------------------------------------------------------------- formulário */
+
+.form {
+  display: grid;
+  gap: var(--space-md);
+  align-content: start;
+}
+
+.field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.pair {
+  display: grid;
+  gap: var(--space-md);
+}
+
+@media (min-width: 480px) {
+  .pair {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  }
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-muted);
+}
+
+.optional {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-faint);
+}
+
+/*
+ * Campo com filete embaixo, não caixa: o vocabulário é de ficha impressa, não
+ * de formulário de app. A altura mínima garante o alvo de toque.
+ */
+.input {
+  min-block-size: 48px;
+  padding: 0.75rem 0;
+  background-color: transparent;
+  color: var(--ink);
+  border: none;
+  border-block-end: 1px solid var(--rule-strong);
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  /* iOS dá zoom no campo quando a fonte é menor que 16px. */
+  transition: border-color var(--dur-fast) var(--ease-brand);
+  /* O select nativo herda o fundo do sistema em alguns navegadores. */
+  appearance: none;
+}
+
+.input:focus-visible {
+  border-block-end-color: var(--ink);
+  outline-offset: 4px;
+}
+
+.input[aria-invalid='true'] {
+  border-block-end-color: var(--bege);
+}
+
+/* A seta do select precisa ser redesenhada depois do appearance: none. */
+select.input {
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 12px) calc(50% + 2px),
+    calc(100% - 7px) calc(50% + 2px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding-inline-end: 1.75rem;
+}
+
+/* O calendário nativo do WebKit vem com ícone escuro sobre fundo escuro. */
+.input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.textarea {
+  min-block-size: 6rem;
+  resize: vertical;
+  line-height: var(--leading-body);
+}
+
+.error {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  color: var(--bege);
+}
+
+.submit {
+  justify-self: start;
+  min-block-size: 52px;
+  margin-block-start: var(--space-2xs);
+  padding-inline: var(--space-lg);
+  border-radius: var(--radius-pill);
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  transition:
+    background-color var(--dur-fast) var(--ease-brand),
+    color var(--dur-fast) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .submit:hover {
+    background-color: var(--offwhite);
+    color: var(--granada);
+  }
+}
+
+.note,
+.altCta {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--ink-faint);
+  max-width: 44ch;
+}
+
+.altCta a {
+  color: var(--ink-muted);
+  border-block-end: 1px solid currentColor;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .altCta a:hover {
+    color: var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input,
+  .submit,
+  .directLink {
+    transition: none;
+  }
+}

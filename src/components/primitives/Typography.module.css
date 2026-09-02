@@ -1,0 +1,123 @@
+/* ---------------------------------------------------------------- display */
+
+.display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--ink);
+  text-wrap: balance;
+  /* A Instrument Serif tem hastes de alto contraste: sem isto, o Chrome no
+     Windows engrossa os finos e o desenho perde a elegância didone. */
+  font-synthesis: none;
+}
+
+.sizemega {
+  font-size: var(--step-mega);
+  /* Em corpo muito grande o -25 do manual ainda é pouco: o olho lê os vãos
+     como buracos. Fecha mais, como faz a própria arte das peças. */
+  letter-spacing: -0.038em;
+  line-height: 0.8;
+}
+
+.size1 {
+  font-size: var(--step-1);
+  letter-spacing: -0.032em;
+}
+
+.size2 {
+  font-size: var(--step-2);
+}
+
+.size3 {
+  font-size: var(--step-3);
+  line-height: var(--leading-title);
+}
+
+.size4 {
+  font-size: var(--step-4);
+  line-height: var(--leading-title);
+}
+
+.italic {
+  font-style: italic;
+}
+
+.align-start {
+  text-align: start;
+}
+.align-center {
+  text-align: center;
+}
+.align-end {
+  text-align: end;
+}
+
+/* ------------------------------------------------------------------- mono */
+
+.mono {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  line-height: var(--leading-mono);
+  color: var(--ink);
+}
+
+.monolg {
+  font-size: var(--mono-lg);
+  /* Em corpo maior o mono aguenta o -25 do manual sem perder legibilidade. */
+  letter-spacing: var(--tracking-subtitle);
+}
+
+.monomd {
+  font-size: var(--mono-md);
+  letter-spacing: 0.1em;
+}
+
+.monosm {
+  font-size: var(--mono-sm);
+}
+
+.monoxs {
+  font-size: var(--mono-xs);
+  letter-spacing: 0.18em;
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: 0.08em;
+}
+
+/* ------------------------------------------------------------------ prose */
+
+.prose {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  letter-spacing: var(--tracking-body);
+  line-height: var(--leading-body);
+  color: var(--ink);
+  text-transform: none;
+}
+
+.proselg {
+  font-size: var(--text-lg);
+}
+
+.prosemd {
+  font-size: var(--text-md);
+}
+
+.prosesm {
+  font-size: var(--text-sm);
+}
+
+.measured {
+  max-width: var(--container-prose);
+}
+
+.muted {
+  color: var(--ink-muted);
+}

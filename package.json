@@ -1,0 +1,51 @@
+{
+  "name": "wine-garden",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Wine Garden — Viaje o mundo, taça a taça.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "assets:images": "node scripts/build-images.mjs",
+    "assets:svg": "node scripts/build-svg.mjs",
+    "assets:all": "npm run assets:svg && npm run assets:logo && npm run assets:taca && npm run assets:icons && npm run assets:fonts && npm run assets:images",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "qa:visual": "node scripts/qa-visual.mjs",
+    "assets:fonts": "node scripts/build-fonts.mjs",
+    "assets:logo": "node scripts/build-logo.mjs",
+    "test": "tsx --test tests/*.test.ts",
+    "test:all": "npm run typecheck && npm run lint && npm run test && npm run test:e2e",
+    "qa:contrast": "node scripts/qa-contrast.mjs",
+    "qa": "npm run qa:visual && npm run qa:contrast && npm run qa:seo",
+    "assets:taca": "node scripts/build-taca.mjs",
+    "qa:seo": "node scripts/qa-seo.mjs",
+    "assets:icons": "node scripts/build-icons.mjs"
+  },
+  "dependencies": {
+    "gsap": "3.15.0",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@types/google.maps": "3.58.1",
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.8",
+    "@types/react-dom": "19.2.4",
+    "eslint": "9.39.1",
+    "eslint-config-next": "16.3.4",
+    "sharp": "0.35.4",
+    "svgo": "4.1.0",
+    "tsx": "^4.20.6",
+    "typescript": "5.9.3",
+    "wawoff2": "^2.0.1"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

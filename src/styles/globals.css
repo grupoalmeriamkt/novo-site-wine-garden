@@ -1,0 +1,295 @@
+@import './tokens.css';
+
+/* =========================================================================
+   RESET
+   Enxuto de propósito: só o que este projeto realmente precisa.
+   ========================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* O scroll suave fica por conta do CSS nativo: nenhuma lib de scroll
+     sequestra a rolagem. O offset evita que a âncora suma sob o header. */
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + var(--space-md));
+  /* Sem isto, uma seção com transform no iOS sangra scroll lateral. */
+  overflow-x: clip;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  min-height: 100dvh;
+  background-color: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  letter-spacing: var(--tracking-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+  /* A troca de atmosfera acontece na fronteira das seções; a transição
+     evita o corte seco quando o scroll cruza o limite. */
+  transition:
+    background-color var(--dur-slow) var(--ease-inout),
+    color var(--dur-slow) var(--ease-inout);
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  /* Alvo de toque confortável sem inflar o layout visual. */
+  touch-action: manipulation;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+  text-wrap: balance;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  list-style: none;
+  padding: 0;
+}
+
+dialog {
+  max-width: none;
+  max-height: none;
+  border: none;
+  padding: 0;
+  background: none;
+  color: inherit;
+}
+
+::selection {
+  background-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* =========================================================================
+   FOCO
+   Foco visível é requisito de WCAG 2.2 AA — nunca removido, só desenhado.
+   :focus-visible mantém o anel fora do clique de mouse.
+   ========================================================================= */
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-xs);
+}
+
+/* Em atmosferas escuras o púrpura some no fundo; o bege garante contraste. */
+[data-atmosphere='noturna'] :focus-visible,
+[data-atmosphere='intensa'] :focus-visible,
+[data-atmosphere='terroir'] :focus-visible {
+  outline-color: var(--bege);
+}
+
+/* =========================================================================
+   UTILITÁRIOS
+   ========================================================================= */
+
+/* Primeiro tabstop da página: fica fora da tela até receber foco. */
+.skip-link {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 50%;
+  z-index: var(--z-toast);
+  translate: -50% -140%;
+  padding: 0.85rem 1.5rem;
+  background-color: var(--uva);
+  color: var(--offwhite);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  transition: translate var(--dur-fast) var(--ease-brand);
+}
+
+.skip-link:focus-visible {
+  translate: -50% 0;
+  outline-offset: -4px;
+}
+
+.u-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Container editorial padrão. */
+.u-container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+.u-container-editorial {
+  width: 100%;
+  max-width: var(--container-editorial);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+.u-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  gap: var(--grid-gap);
+}
+
+/* Rótulo mono em caixa alta — o vocabulário funcional da marca. */
+.u-label {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: var(--leading-mono);
+  color: var(--ink-muted);
+}
+
+/* Serifa editorial em escala de display. */
+.u-display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+/* Números tabulares para preços e horários: sem eles a coluna dança. */
+.u-tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* =========================================================================
+   ESTADO INICIAL DE ANIMAÇÃO
+   Elementos que o GSAP vai revelar começam invisíveis. A classe é aplicada
+   no HTML e removida pelo próprio GSAP, então nada some se o JS falhar:
+   o :where() de fallback abaixo devolve tudo se a raiz não for hidratada.
+   ========================================================================= */
+
+[data-reveal] {
+  will-change: opacity, transform;
+}
+
+html:not(.js) [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    will-change: auto;
+  }
+
+  /* Nenhuma animação pode esconder conteúdo de quem pediu menos movimento. */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =========================================================================
+   TEXTURA
+   Um grão fino e estático sobre o fundo tira o aspecto de cor chapada em
+   telas grandes. Fica em ::before do body para não custar um nó a mais,
+   e some no print. Nunca deve ler como filtro vintage.
+   ========================================================================= */
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-below);
+  pointer-events: none;
+  opacity: 0.032;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+@media print {
+  body::before {
+    display: none;
+  }
+}

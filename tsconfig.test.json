@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Os testes rodam via tsx, que resolve imports com extensão .ts
+    // diretamente. O tsconfig da aplicação não pode habilitar isso (o bundler
+    // do Next resolve sem extensão), então os testes têm o seu.
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": ["tests/**/*.ts", "src/**/*.ts", "src/**/*.tsx", "next-env.d.ts"],
+  "exclude": ["node_modules", "e2e", "scripts"]
+}

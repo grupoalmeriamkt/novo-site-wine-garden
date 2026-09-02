@@ -1,0 +1,17 @@
+.section {
+  position: relative;
+  background-color: var(--surface);
+  color: var(--ink);
+  padding-block: var(--section-y);
+  /* isolation cria um contexto de empilhamento local: um z-index dentro de
+     uma seção nunca disputa com outra seção. */
+  isolation: isolate;
+}
+
+.tight {
+  padding-block: var(--section-y-tight);
+}
+
+.bleed {
+  padding-block: 0;
+}

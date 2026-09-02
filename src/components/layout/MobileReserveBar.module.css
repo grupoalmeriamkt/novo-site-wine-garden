@@ -1,0 +1,56 @@
+.bar {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  justify-content: center;
+  padding: var(--space-xs) var(--gutter) calc(var(--space-xs) + var(--safe-bottom));
+  background: linear-gradient(to top, var(--uva) 42%, transparent);
+  pointer-events: none;
+  opacity: 0;
+  translate: 0 100%;
+  transition:
+    opacity var(--dur-base) var(--ease-brand),
+    translate var(--dur-base) var(--ease-brand);
+}
+
+.bar[data-visible] {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+}
+
+/* Em telas com espaço, o CTA do header já resolve — a barra vira redundância. */
+@media (min-width: 640px) {
+  .bar {
+    display: none;
+  }
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  min-block-size: 52px;
+  border-radius: var(--radius-pill);
+  background-color: var(--purpura);
+  color: var(--offwhite);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 0.35);
+}
+
+.link:active {
+  background-color: var(--granada);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    transition: none;
+  }
+}

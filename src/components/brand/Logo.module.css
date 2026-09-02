@@ -1,0 +1,7 @@
+.logo {
+  display: block;
+  color: inherit;
+  /* O lettering é monolinear e finíssimo (traço ≈ 7% da altura das maiúsculas).
+     Sem isto, o Safari arredonda as hastes para o pixel e o "I" some. */
+  shape-rendering: geometricPrecision;
+}

@@ -1,0 +1,126 @@
+.inner {
+  display: grid;
+  gap: var(--space-2xl);
+  width: 100%;
+  max-width: var(--container-editorial);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+.head {
+  display: grid;
+  gap: var(--space-sm);
+  max-width: 46ch;
+}
+
+.italic {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.lead {
+  max-width: 52ch;
+}
+
+/* ------------------------------------------------------------------ lista */
+
+.lista {
+  display: grid;
+  border-block-start: 1px solid var(--rule);
+}
+
+.item {
+  border-block-end: 1px solid var(--rule);
+}
+
+/*
+ * A pergunta é o alvo de clique inteiro. `list-style: none` some com o
+ * triângulo padrão do <details> nos dois motores — o WebKit precisa do
+ * pseudo-elemento próprio.
+ */
+.pergunta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  padding-block: var(--space-md);
+  cursor: pointer;
+  list-style: none;
+  /* Alvo confortável mesmo quando a pergunta é curta. */
+  min-block-size: 44px;
+  transition: color var(--dur-fast) var(--ease-brand);
+}
+
+.pergunta::-webkit-details-marker {
+  display: none;
+}
+
+.numero {
+  flex: none;
+  color: var(--ink-faint);
+}
+
+.texto {
+  font-family: var(--font-serif);
+  font-size: var(--step-4);
+  line-height: 1.15;
+  letter-spacing: var(--tracking-title);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+/* Cruz que vira traço quando aberta — o gesto mais legível que uma seta. */
+.sinal {
+  flex: none;
+  position: relative;
+  inline-size: 0.85rem;
+  block-size: 0.85rem;
+  margin-inline-start: auto;
+  align-self: center;
+}
+
+.sinal::before,
+.sinal::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  inline-size: 100%;
+  block-size: 1px;
+  background-color: var(--ink-muted);
+  transition: transform var(--dur-fast) var(--ease-brand);
+}
+
+.sinal::after {
+  transform: rotate(90deg);
+}
+
+.item[open] .sinal::after {
+  transform: rotate(0deg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pergunta:hover .texto {
+    color: var(--accent);
+  }
+}
+
+.resposta {
+  padding-block-end: var(--space-md);
+  /* Alinha a resposta com o texto da pergunta, não com o número. */
+  padding-inline-start: calc(var(--space-sm) + 1.75rem);
+  max-width: 62ch;
+}
+
+@media (max-width: 640px) {
+  .resposta {
+    padding-inline-start: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pergunta,
+  .sinal::before,
+  .sinal::after {
+    transition: none;
+  }
+}

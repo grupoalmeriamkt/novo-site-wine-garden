@@ -1,0 +1,570 @@
+/*
+ * O <section> não tem altura de tela: ele tem o COMPRIMENTO DE SCROLL que a
+ * sequência consome. Três alturas de viewport = três atos. O que se vê é o
+ * palco, que fica preso enquanto isso.
+ */
+.hero {
+  position: relative;
+  block-size: 300svh;
+  background-color: var(--uva);
+  color: var(--offwhite);
+  isolation: isolate;
+}
+
+.stage {
+  position: sticky;
+  inset-block-start: 0;
+  block-size: 100svh;
+  /* Uma grade de uma célula só: todos os atos ocupam a MESMA área e se
+     sobrepõem. É o que permite um sair enquanto o outro entra, no mesmo
+     centro óptico. */
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------ mídia */
+
+.mediaWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.media {
+  position: absolute;
+  inset: -6%;
+  will-change: transform;
+}
+
+.img {
+  object-fit: cover;
+  object-position: center 60%;
+}
+
+/*
+ * O véu é mais fechado que numa abertura comum: aqui o centro da tela é
+ * ocupado por tipografia e pelo logotipo em escala grande, e a fotografia
+ * trabalha como atmosfera, não como assunto.
+ */
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--uva) 72%, transparent) 0%,
+    color-mix(in oklab, var(--uva) 30%, transparent) 34%,
+    color-mix(in oklab, var(--uva) 44%, transparent) 66%,
+    color-mix(in oklab, var(--uva-900) 88%, transparent) 100%
+  );
+}
+
+/* Vinheta radial: fecha as bordas e cria o foco central que a composição pede. */
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    96% 78% at 50% 48%,
+    color-mix(in oklab, var(--uva-900) 30%, transparent) 0%,
+    color-mix(in oklab, var(--uva-900) 12%, transparent) 42%,
+    color-mix(in oklab, var(--uva-900) 62%, transparent) 100%
+  );
+}
+
+/* --------------------------------------------------------------- os atos */
+
+/* Todos os atos ocupam a mesma célula da grade e se empilham no centro. */
+.acts {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  grid-template-areas: 'palco';
+  inline-size: 100%;
+  block-size: 100%;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+  pointer-events: none;
+}
+
+.acts > * {
+  grid-area: palco;
+}
+
+/* ------------------------------------------------------- ATO 1 · a marca */
+
+.mark {
+  display: grid;
+  place-items: center;
+  color: var(--offwhite);
+  will-change: transform, opacity;
+  /* O lettering é finíssimo; a sombra o descola da fotografia sem engrossá-lo. */
+  filter: drop-shadow(0 0.08em 0.6em color-mix(in oklab, var(--uva-900) 62%, transparent));
+}
+
+.markKicker {
+  /*
+   * Posicionado por `inset`, não por `transform`.
+   *
+   * O GSAP anima `y` neste elemento na entrada, e `y` é escrito como
+   * `transform: translate(...)` — que sobrescreveria por completo um
+   * `translateY` declarado aqui. O resultado era o rótulo pousando no meio do
+   * logotipo. Separar as responsabilidades resolve: o CSS posiciona, o GSAP
+   * anima.
+   */
+  position: absolute;
+  inset-block-start: 50%;
+  margin-block-start: clamp(6rem, 19vh, 13rem);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--bege);
+  white-space: nowrap;
+  will-change: transform, opacity;
+}
+
+.markRule {
+  inline-size: clamp(1.5rem, 4vw, 3.5rem);
+  block-size: 1px;
+  background-color: currentColor;
+  opacity: 0.5;
+}
+
+/* ------------------------------------------------------- ATO 2 · a frase */
+
+.phrase {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  font-family: var(--font-serif);
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  /* Começa oculta: o GSAP a traz com `autoAlpha`, que também devolve a
+     `visibility`. `visibility: hidden` (e não só `opacity: 0`) é o que tira o
+     bloco da ordem de tabulação enquanto ele não está em cena. */
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.phraseTop,
+.phraseBottom {
+  display: block;
+  font-size: clamp(2.6rem, min(11vw, 17vh), 13rem);
+}
+
+.phraseTop {
+  color: var(--offwhite);
+}
+
+.phraseBottom {
+  font-style: italic;
+  color: var(--bege);
+  /* Deslocamento leve: a segunda linha não alinha com a primeira — é o gesto
+     de "diagramação orgânica" do manual em versão centrada. */
+  transform: translateX(clamp(0.5rem, 3vw, 3rem));
+}
+
+.phraseTrace {
+  inline-size: min(72vw, 60rem);
+  block-size: clamp(6rem, 18vh, 12rem);
+  color: var(--bege);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------- ATO 3 · as origens */
+
+.constellation {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+  /* O centro do arco cai sobre a parte clara da fotografia; sem a sombra o
+     subtítulo em bege desaparece nas luzes do pergolado. */
+  text-shadow:
+    0 2px 6px color-mix(in oklab, var(--uva-900) 72%, transparent),
+    0 6px 28px color-mix(in oklab, var(--uva-900) 52%, transparent);
+}
+
+.constellationTitle {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--offwhite);
+}
+
+.constellationSub {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--bege);
+}
+
+/* ------------------------------------------------------------------ selos */
+
+.stamps {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  /* A lista não intercepta o ponteiro; cada link, sim. */
+  pointer-events: none;
+}
+
+/*
+ * Cada selo é posicionado em coordenadas polares: gira até o ângulo, anda o
+ * raio, e desgira para voltar à vertical. Duas rotações opostas com uma
+ * translação no meio distribuem em arco sem calcular seno e cosseno em JS.
+ */
+.stampSlot {
+  grid-area: 1 / 1;
+  pointer-events: auto;
+  opacity: 0;
+  /* Enquanto os selos não entram em cena eles não são focáveis: um link
+     invisível na ordem de tabulação leva o teclado a um destino que ninguém vê. */
+  visibility: hidden;
+  /* O centro do arco desce meia altura de header: sem isto os selos do topo
+     ficam sob a barra de navegação, que é fixa. */
+  margin-block-start: calc(var(--header-h) * 0.6);
+  /* O raio é limitado pela ALTURA do palco, não pela largura: o arco abre para
+     cima, e um raio grande demais joga os selos do topo para fora do recorte. */
+  transform: rotate(var(--angle)) translateY(clamp(9rem, 26vh, 16rem)) rotate(calc(-1 * var(--angle)));
+  will-change: transform, opacity;
+}
+
+.stamp {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  /*
+   * Os oito selos NÃO têm a mesma proporção: França e Espanha são quadrados,
+   * Itália e Chile são retrato, os EUA são paisagem (411×253). Dimensionados
+   * pela largura, o dos EUA ficava com 36px de altura — abaixo do alvo mínimo
+   * de toque. O piso garante 44px para todos sem alterar a arte.
+   */
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  color: var(--offwhite);
+}
+
+.stampArt {
+  inline-size: clamp(46px, 5vw, 76px);
+  block-size: auto;
+  filter: drop-shadow(0 10px 24px rgb(0 0 0 / 0.5));
+  transition:
+    transform var(--dur-base) var(--ease-brand),
+    filter var(--dur-base) var(--ease-brand);
+}
+
+.stampInfo {
+  display: grid;
+  justify-items: center;
+  gap: 0.05rem;
+  font-family: var(--font-mono);
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  translate: 0 -0.3rem;
+  transition:
+    opacity var(--dur-fast) var(--ease-brand),
+    translate var(--dur-fast) var(--ease-brand);
+  text-shadow: 0 1px 3px color-mix(in oklab, var(--uva-900) 82%, transparent);
+}
+
+.stampName {
+  font-size: var(--mono-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--offwhite);
+}
+
+.stampCount {
+  font-size: var(--mono-xs);
+  color: var(--bege);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stamp:hover .stampArt {
+    transform: scale(1.16);
+    filter: drop-shadow(0 16px 32px rgb(0 0 0 / 0.6));
+  }
+
+  .stamp:hover .stampInfo {
+    opacity: 1;
+    translate: 0;
+  }
+}
+
+/* Foco de teclado recebe o mesmo tratamento do ponteiro. */
+.stamp:focus-visible .stampArt {
+  transform: scale(1.16);
+  filter: drop-shadow(0 16px 32px rgb(0 0 0 / 0.6));
+}
+
+.stamp:focus-visible .stampInfo {
+  opacity: 1;
+  translate: 0;
+}
+
+.stampSlot:hover,
+.stampSlot:focus-within {
+  z-index: 2;
+}
+
+/* ---------------------------------------------------------------- desfecho */
+
+.outro {
+  position: absolute;
+  inset-block-end: calc(var(--space-lg) + var(--safe-bottom));
+  inset-inline-end: max(var(--gutter), var(--safe-right));
+  z-index: 4;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* --------------------------------------------------------------- convite */
+
+.cue {
+  position: absolute;
+  inset-block-end: calc(var(--space-lg) + var(--safe-bottom));
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  z-index: 4;
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  min-block-size: 44px;
+  padding-block: 0.5rem;
+  color: var(--offwhite);
+}
+
+.cueLine {
+  display: block;
+  inline-size: 1px;
+  block-size: 2.5rem;
+  background: linear-gradient(to bottom, currentColor, transparent);
+  transform-origin: top;
+  animation: cue 2.6s var(--ease-inout) infinite;
+}
+
+@keyframes cue {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* =========================================================================
+   CELULAR — a mesma narrativa, empilhada e sem pin
+   ========================================================================= */
+
+@media (max-width: 899px) {
+  .hero {
+    /* Sem pin, a altura volta a ser a do conteúdo. */
+    block-size: auto;
+  }
+
+  .stage {
+    position: relative;
+    block-size: auto;
+    min-block-size: 100svh;
+    display: grid;
+    align-content: center;
+    gap: var(--space-2xl);
+    padding-block: calc(var(--header-h) + var(--safe-top) + var(--space-2xl))
+      calc(var(--space-3xl) + var(--safe-bottom));
+  }
+
+  /* A mídia acompanha a altura total da pilha. */
+  .media {
+    position: fixed;
+    inset: 0;
+  }
+
+  /* Os atos deixam de se sobrepor e viram blocos em sequência. */
+  .acts {
+    display: grid;
+    grid-template-areas: none;
+    gap: var(--space-2xl);
+    block-size: auto;
+    place-items: center;
+  }
+
+  .acts > * {
+    grid-area: auto;
+  }
+
+  .markKicker {
+    /* Volta ao fluxo: o posicionamento absoluto existe só para o palco
+       sobreposto do desktop, onde todos os atos dividem a mesma célula. */
+    position: static;
+    margin-block-start: 0;
+    transform: none;
+  }
+
+  /* No celular cada bloco entra por scroll, então começam visíveis no CSS e o
+     GSAP assume — se o JS falhar, tudo continua legível. */
+  .phrase,
+  .constellation,
+  .phraseTrace,
+  .outro,
+  .stampSlot {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .phraseTrace {
+    inline-size: 100%;
+    block-size: 5rem;
+    opacity: 0.7;
+  }
+
+  /* O arco não cabe numa tela estreita: os selos viram uma faixa rolável. */
+  .stamps {
+    position: relative;
+    inset: auto;
+    display: flex;
+    gap: var(--space-sm);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding-block: var(--space-sm);
+    padding-inline: max(var(--gutter), var(--safe-left));
+    /* Sangra até a borda para indicar que há mais para o lado. */
+    margin-inline: calc(-1 * max(var(--gutter), var(--safe-left)));
+    pointer-events: auto;
+    /* Sem barra visível: a fita já indica o corte nas pontas. */
+    scrollbar-width: none;
+  }
+
+  .stamps::-webkit-scrollbar {
+    display: none;
+  }
+
+  .stampSlot {
+    grid-area: auto;
+    flex: none;
+    opacity: 1;
+    transform: none;
+    scroll-snap-align: center;
+  }
+
+  /* Sem hover no toque: o rótulo fica sempre visível. */
+  .stampInfo {
+    opacity: 1;
+    translate: 0;
+  }
+
+  .stampArt {
+    inline-size: 58px;
+  }
+
+  .outro {
+    position: relative;
+    inset: auto;
+    opacity: 1;
+    justify-self: center;
+  }
+
+  .cue {
+    display: none;
+  }
+}
+
+/* =========================================================================
+   MENOS MOVIMENTO — tudo visível, nada se move
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    block-size: auto;
+  }
+
+  .stage {
+    position: relative;
+    block-size: auto;
+    min-block-size: 100svh;
+    align-content: center;
+    gap: var(--space-2xl);
+    padding-block: calc(var(--header-h) + var(--safe-top) + var(--space-2xl))
+      calc(var(--space-2xl) + var(--safe-bottom));
+  }
+
+  .acts {
+    grid-template-areas: none;
+    gap: var(--space-2xl);
+    block-size: auto;
+  }
+
+  .acts > * {
+    grid-area: auto;
+  }
+
+  /* Nada começa invisível quando não há animação para revelar. */
+  .phrase,
+  .constellation,
+  .phraseTrace,
+  .outro,
+  .stampSlot {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .markKicker {
+    position: static;
+    margin-block-start: 0;
+    transform: none;
+  }
+
+  .stampSlot {
+    margin-block-start: 0;
+    transform: none;
+  }
+
+  .stamps {
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-md);
+    pointer-events: auto;
+  }
+
+  .cueLine {
+    animation: none;
+    opacity: 0.7;
+  }
+
+  .media,
+  .mark,
+  .phrase,
+  .constellation,
+  .outro,
+  .stampSlot {
+    will-change: auto;
+  }
+}

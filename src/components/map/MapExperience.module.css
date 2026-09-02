@@ -1,0 +1,104 @@
+/* =========================================================================
+   MAPA INTERATIVO
+   O contêiner se sobrepõe ao mapa desenhado da seção (que fica por baixo,
+   sempre renderizado). Por isso é absoluto: o pai precisa ser `position:
+   relative` — Localizacao.module.css garante isso em `.stage`.
+   ========================================================================= */
+
+.map {
+  position: absolute;
+  inset: 0;
+  /* Enquanto os tiles não chegam, o fundo é o mesmo da seção; o mapa desenhado
+     por baixo continua visível através da opacidade zero. */
+  background-color: var(--surface-sunken);
+  opacity: 0;
+  transition: opacity var(--dur-cinema) var(--ease-inout);
+}
+
+/* A troca entre o mapa desenhado e o mapa real é uma dissolução lenta, não um
+   corte: os dois têm o mesmo ponto no mesmo lugar, então a transição lê como
+   "o desenho virou território". */
+.map[data-ready='true'] {
+  opacity: 1;
+}
+
+/* O Google injeta o próprio DOM aqui dentro; só reservamos o direito de tirar
+   o link "Ver no Google Maps" do caminho do dedo em telas pequenas. */
+.map :global(.gm-style) {
+  font-family: var(--font-mono);
+}
+
+/* =========================================================================
+   MARCADOR
+   Conteúdo DOM entregue ao AdvancedMarkerElement. Ancorado pela base: a ordem
+   selo → haste → ponto faz o ponto cair sobre a coordenada.
+   ========================================================================= */
+
+.marker {
+  display: grid;
+  justify-items: center;
+  /* O marcador não intercepta o gesto: arrastar o mapa a partir dele deve
+     arrastar o mapa. */
+  pointer-events: none;
+  user-select: none;
+}
+
+.markerBadge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 58px;
+  block-size: 49px;
+}
+
+/* Anel pontilhado ao redor do selo — o mesmo vocabulário da linha da marca,
+   dizendo "região" em vez de "trajetória". Gira devagar: é respiração, não
+   animação de carregamento. */
+.markerHalo {
+  position: absolute;
+  inset: -13px -8px;
+  border: var(--trace-width) dashed var(--bege);
+  border-radius: var(--radius-pill);
+  opacity: 0.9;
+  animation: halo 26s linear infinite;
+}
+
+.markerSeal {
+  position: relative;
+  inline-size: 58px;
+  block-size: auto;
+  filter: drop-shadow(0 6px 14px rgb(0 0 0 / 0.35));
+}
+
+.markerStem {
+  inline-size: var(--trace-width);
+  block-size: 20px;
+  background: linear-gradient(to bottom, var(--granada), color-mix(in oklab, var(--granada) 30%, transparent));
+}
+
+.markerDot {
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: var(--radius-pill);
+  background-color: var(--granada);
+  box-shadow: 0 0 0 3px var(--offwhite);
+}
+
+@keyframes halo {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markerHalo {
+    animation: none;
+  }
+
+  .map {
+    transition: none;
+  }
+}

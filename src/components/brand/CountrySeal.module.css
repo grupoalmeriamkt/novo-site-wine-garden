@@ -1,0 +1,157 @@
+/* =========================================================================
+   SELO DE PAÍS
+   Selo postal oficial montado numa folha de álbum. A folha existe por
+   direção de arte (é assim que selo se guarda) e por contraste: os selos
+   são fechados em granada, uva e oliva e sumiriam sobre a atmosfera
+   noturna. Ver o comentário do componente.
+   ========================================================================= */
+
+.seal {
+  /* Medida da FAIXA do selo, não do lado: a caixa real é
+     `faixa × √(w/h)` por `faixa ÷ √(w/h)`, o que dá a todos os selos a
+     mesma área independentemente da proporção original. */
+  --seal-size: clamp(60px, 8vw, 92px);
+  --seal-scale: 1;
+  --seal-tilt: 0deg;
+  --seal-w: 1;
+  --seal-h: 1;
+
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2xs);
+  line-height: 1;
+}
+
+.sm {
+  --seal-size: clamp(44px, 9vw, 64px);
+}
+
+.md {
+  --seal-size: clamp(60px, 8vw, 92px);
+}
+
+.lg {
+  --seal-size: clamp(84px, 10vw, 132px);
+}
+
+/* ------------------------------------------------------------------ folha */
+
+.mount {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--seal-size) * var(--seal-scale) * var(--seal-w));
+  block-size: calc(var(--seal-size) * var(--seal-scale) * var(--seal-h));
+  padding: clamp(4px, 0.55vw, 9px);
+  /* --surface e --ink vêm do data-atmosphere="editorial" declarado no JSX:
+     a folha é uma ilha clara dentro de qualquer atmosfera. */
+  background-color: var(--surface);
+  color: var(--ink);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, var(--uva-900) 40%, transparent),
+    0 14px 30px color-mix(in oklab, var(--uva-900) 45%, transparent);
+  /* O selo é colado à mão: nunca alinhado ao grid. */
+  transform: rotate(var(--seal-tilt));
+  transition:
+    transform var(--dur-base) var(--ease-brand),
+    opacity var(--dur-base) var(--ease-brand),
+    box-shadow var(--dur-base) var(--ease-brand);
+}
+
+/* Fio interno da página do álbum — separa a folha do selo sem moldura. */
+.mount::after {
+  content: '';
+  position: absolute;
+  inset: clamp(2px, 0.28vw, 4px);
+  border: 1px solid var(--rule);
+  pointer-events: none;
+}
+
+.img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+}
+
+/* ---------------------------------------------------------------- legenda */
+
+.legend {
+  display: grid;
+  justify-items: center;
+  gap: 0.1rem;
+  text-align: center;
+  /* A legenda pode ser mais larga que o selo (nomes longos), mas não tanto
+     que encoste no vizinho da composição. */
+  max-inline-size: calc(var(--seal-size) * 2.1);
+}
+
+.orderSlot {
+  display: block;
+}
+
+.order {
+  color: var(--ink-muted);
+  opacity: 0.72;
+}
+
+.name {
+  color: var(--ink-muted);
+  transition: color var(--dur-fast) var(--ease-brand);
+}
+
+.caption {
+  color: var(--ink-muted);
+  opacity: 0.75;
+}
+
+/* ----------------------------------------------------------------- estados */
+
+/* A origem aberta: a folha levanta, quase se endireita e cresce um pouco.
+   Movimento e escala — não só cor — para a seleção não depender de
+   percepção cromática (WCAG 1.4.1). */
+.seal[data-state='active'] .mount {
+  transform: rotate(calc(var(--seal-tilt) * 0.3)) translateY(-5px) scale(1.05);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, var(--uva-900) 40%, transparent),
+    0 24px 46px color-mix(in oklab, var(--uva-900) 62%, transparent);
+}
+
+.seal[data-state='active'] .name {
+  color: var(--ink);
+}
+
+/* Fora do foco só a ARTE apaga. O rótulo mantém o contraste: informação
+   nunca fica ilegível porque outro item está selecionado. */
+.seal[data-state='muted'] .mount {
+  opacity: 0.48;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* Hover só enfatiza — quem abre a origem é o clique. */
+  .seal:hover .mount {
+    transform: rotate(calc(var(--seal-tilt) * 0.45)) translateY(-3px);
+    opacity: 1;
+  }
+
+  .seal:hover .name {
+    color: var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mount,
+  .name {
+    transition: none;
+  }
+
+  .seal[data-state='active'] .mount,
+  .seal:hover .mount {
+    transform: rotate(var(--seal-tilt));
+  }
+
+  /* Sem o movimento, a seleção precisa de outro sinal visual forte. */
+  .seal[data-state='active'] .mount::after {
+    border-color: var(--accent);
+    border-width: 2px;
+  }
+}

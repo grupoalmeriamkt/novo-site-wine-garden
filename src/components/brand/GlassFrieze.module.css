@@ -1,0 +1,163 @@
+/*
+ * O friso sangra: as taças são cortadas pela borda inferior, como nas peças
+ * impressas da marca. A altura fixa do contêiner é o que produz o corte.
+ */
+.frieze {
+  position: relative;
+  inline-size: 100%;
+  block-size: clamp(84px, 11vw, 150px);
+  overflow: hidden;
+  color: var(--bege);
+}
+
+.fila {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(0.5rem, 2.4vw, 2.5rem);
+  block-size: 100%;
+  /* As taças descem além da borda: o corte acontece no overflow do contêiner. */
+  padding-block-start: clamp(1rem, 3vw, 2.5rem);
+  padding-inline: var(--gutter);
+}
+
+.item {
+  display: flex;
+  align-items: flex-end;
+  block-size: 100%;
+}
+
+.taca {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  block-size: 100%;
+  /* Alvo de toque: a taça é estreita, então o link recebe largura mínima. */
+  min-inline-size: 44px;
+  justify-content: center;
+  color: inherit;
+}
+
+.desenho {
+  block-size: 100%;
+  inline-size: auto;
+  /* Visível o bastante para o nível do vinho ser lido de relance; o hover
+     leva ao opaco. */
+  opacity: 0.75;
+  transform-origin: bottom center;
+  transition:
+    opacity var(--dur-base) var(--ease-brand),
+    transform var(--dur-base) var(--ease-brand);
+}
+
+/*
+ * O rótulo sobe de dentro do friso. Fica ABAIXO do topo do contêiner para não
+ * ser cortado pelo overflow que produz a sangria das taças.
+ */
+.info {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 50%;
+  translate: -50% 0.4rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.1rem;
+  font-family: var(--font-mono);
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-fast) var(--ease-brand),
+    translate var(--dur-fast) var(--ease-brand);
+}
+
+.nome {
+  font-size: var(--mono-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--offwhite);
+}
+
+.total {
+  font-size: var(--mono-xs);
+  color: var(--bege);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .taca:hover .desenho {
+    opacity: 1;
+    /* Levanta um pouco, como quem tira a taça da mesa. */
+    transform: translateY(-6px);
+  }
+
+  .taca:hover .info {
+    opacity: 1;
+    translate: -50% 0;
+  }
+}
+
+/* Foco de teclado recebe o mesmo tratamento do ponteiro. */
+.taca:focus-visible .desenho {
+  opacity: 1;
+  transform: translateY(-6px);
+}
+
+.taca:focus-visible .info {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+/*
+ * Em telas estreitas nove taças não cabem lado a lado sem virarem riscos.
+ * A fila passa a rolar na horizontal, com snap, e o rótulo fica sempre
+ * visível — no toque não existe hover.
+ */
+@media (max-width: 767px) {
+  .fila {
+    justify-content: flex-start;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .fila::-webkit-scrollbar {
+    display: none;
+  }
+
+  .item {
+    flex: none;
+    scroll-snap-align: center;
+  }
+
+  .desenho {
+    opacity: 0.9;
+    min-inline-size: 26px;
+  }
+
+  .info {
+    opacity: 1;
+    translate: -50% 0;
+  }
+
+  .nome {
+    /* O nome completo não cabe; a contagem é o que informa aqui. */
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desenho,
+  .info {
+    transition: none;
+  }
+
+  .taca:hover .desenho,
+  .taca:focus-visible .desenho {
+    transform: none;
+  }
+}

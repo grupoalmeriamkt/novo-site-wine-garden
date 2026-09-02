@@ -1,0 +1,841 @@
+/* =========================================================================
+   WINE EXPLORER
+   Uma carta de vinhos, não uma vitrine. O vocabulário é o do índice
+   editorial: numeração mono, filetes de 1px, fio pontilhado ligando rótulo e
+   contagem, muito ar. Nenhuma sombra, nenhum raio, nenhuma caixa.
+   ========================================================================= */
+
+/* ------------------------------------------------- cabeçalho (server-side)
+   Consumido por src/app/vinhos/page.tsx: a abertura da página é conteúdo
+   estático e continua num Server Component, mas o desenho pertence a este
+   módulo para não espalhar CSS solto pela rota. */
+
+.page {
+  /* O header do site é fixo; sem esta folga o título nasce debaixo dele. */
+  padding-block-start: calc(var(--section-y) + var(--header-h));
+}
+
+.masthead {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+  position: relative;
+}
+
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--mono-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+}
+
+.kicker::after {
+  content: '';
+  flex: 1;
+  max-inline-size: 12rem;
+  block-size: 1px;
+  background-color: var(--rule);
+}
+
+.title {
+  margin-block-start: var(--space-md);
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--step-1);
+  line-height: var(--leading-display);
+  letter-spacing: -0.032em;
+  color: var(--ink);
+  max-inline-size: 16ch;
+}
+
+.titleItalic {
+  font-style: italic;
+  color: var(--accent);
+}
+
+/* A linha pontilhada liga o fim do título ao bloco de números: é a
+   "quebra de texto com linha conectando" do manual, aplicada à abertura. */
+.traceSlot {
+  position: relative;
+  block-size: clamp(3.5rem, 7vw, 6rem);
+  margin-block: calc(var(--space-md) * -1) 0;
+  color: var(--trace);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md) var(--space-xl);
+  padding-block-start: var(--space-sm);
+}
+
+.figure {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.figureValue {
+  font-family: var(--font-mono);
+  font-size: var(--mono-lg);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  color: var(--ink);
+}
+
+.figureLabel {
+  font-family: var(--font-mono);
+  font-size: var(--mono-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+}
+
+.fallback {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding: var(--space-2xl) max(var(--gutter), var(--safe-left), var(--safe-right));
+  display: grid;
+  gap: var(--space-lg);
+}
+
+/* ========================================================== o explorador */
+
+.explorer {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+  padding-block-start: var(--space-xl);
+}
+
+/* ------------------------------------------------------------- barra fixa */
+
+.toolbar {
+  position: sticky;
+  /* Abaixo do header do site, nunca por cima dele. */
+  inset-block-start: calc(var(--header-h) + var(--safe-top));
+  z-index: var(--z-sticky);
+  background-color: var(--surface);
+  border-block-end: 1px solid var(--rule);
+  /* Estica até a sangria para o fundo não deixar ver a lista passando atrás. */
+  margin-inline: calc(max(var(--gutter), var(--safe-left)) * -1);
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+.toolbarInner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-block: var(--space-2xs);
+  max-width: var(--container-max);
+  margin-inline: auto;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: 48px;
+  cursor: text;
+}
+
+.searchIcon {
+  flex: none;
+  inline-size: 1.05rem;
+  block-size: 1.05rem;
+  color: var(--ink-faint);
+}
+
+.searchInput {
+  flex: 1;
+  min-inline-size: 0;
+  border: none;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--ink);
+  padding-block: 0.5rem;
+  /* Remove o X nativo do Safari/Chrome: temos um botão real, rotulado. */
+  appearance: none;
+}
+
+.searchInput::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.searchInput::placeholder {
+  color: var(--ink-faint);
+}
+
+.searchClear {
+  flex: none;
+  inline-size: 44px;
+  block-size: 44px;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--ink-muted);
+}
+
+.tally {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* Em telas estreitas a contagem some da barra: ela reaparece logo abaixo,
+   no cabeçalho da coluna, e aqui só competiria com a busca. */
+@media (max-width: 559px) {
+  .tally {
+    display: none;
+  }
+}
+
+.drawerTrigger {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-block-size: 44px;
+  padding-inline: var(--space-sm);
+  border: 1px solid var(--rule-strong);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink);
+}
+
+.drawerBadge {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 1.25rem;
+  block-size: 1.25rem;
+  padding-inline: 0.25rem;
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--mono-xs);
+}
+
+/* No desktop o rail está sempre à vista: a gaveta não existe. */
+@media (min-width: 1024px) {
+  .drawerTrigger {
+    display: none;
+  }
+}
+
+/* =============================================================== a porta */
+
+.portal {
+  display: grid;
+  gap: var(--space-3xl);
+  padding-block: var(--space-2xl) var(--section-y);
+}
+
+.band {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.bandHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  border-block-end: 1px solid var(--rule);
+  padding-block-end: var(--space-xs);
+}
+
+.bandNumber {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.bandTitle {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--step-3);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------- 01 · serviço */
+
+.serving {
+  display: grid;
+  gap: 1px;
+  background-color: var(--rule);
+  /* O filete de 1px entre os dois blocos vem do gap sobre o fundo — assim não
+     há borda dupla nem canto arredondado. */
+}
+
+@media (min-width: 768px) {
+  .serving {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.servingOption {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: grid;
+  align-content: end;
+  gap: var(--space-2xs);
+  min-block-size: clamp(11rem, 26vw, 17rem);
+  padding: var(--space-lg) var(--space-md) var(--space-md);
+  background-color: var(--surface);
+  text-align: start;
+  transition: background-color var(--dur-base) var(--ease-inout);
+}
+
+.servingOption:hover,
+.servingOption:focus-visible {
+  background-color: var(--surface-sunken);
+}
+
+.servingArt {
+  position: absolute;
+  z-index: var(--z-below);
+  opacity: 0.14;
+  pointer-events: none;
+  transition: transform var(--dur-slow) var(--ease-brand);
+}
+
+/* A taça sozinha: alta, encostada na direita, como a marca d'água de uma
+   página de carta. */
+.artGlass {
+  inset-block-start: -8%;
+  inset-inline-end: 4%;
+  block-size: 108%;
+  inline-size: auto;
+  max-inline-size: none;
+}
+
+/* O friso das dez taças: a garrafa é a mesa inteira, não uma dose. */
+.artFrieze {
+  inset-block-end: -6%;
+  inset-inline-start: -4%;
+  inline-size: 118%;
+  max-inline-size: none;
+  block-size: auto;
+}
+
+.servingOption:hover .artGlass {
+  transform: translateY(-2%);
+}
+
+.servingOption:hover .artFrieze {
+  transform: translateX(1.5%);
+}
+
+.servingTitle {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--step-2);
+  line-height: 0.95;
+  letter-spacing: var(--tracking-display);
+  color: var(--ink);
+}
+
+.servingTally {
+  font-family: var(--font-mono);
+  font-size: var(--mono-lg);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  color: var(--accent);
+}
+
+.servingUnit {
+  font-size: var(--mono-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+}
+
+.servingNote {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  line-height: var(--leading-mono);
+  color: var(--ink-muted);
+  max-inline-size: 28ch;
+}
+
+/* ----------------------------------------------------- 02 · categorias */
+
+.index {
+  display: grid;
+}
+
+.indexRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  inline-size: 100%;
+  min-block-size: 56px;
+  text-align: start;
+  border-block-end: 1px solid var(--rule);
+  color: var(--ink);
+  transition: color var(--dur-fast) var(--ease-inout);
+}
+
+.indexRow:hover:not(:disabled),
+.indexRow:focus-visible {
+  color: var(--accent);
+}
+
+.indexRow:disabled {
+  color: var(--ink-faint);
+  cursor: not-allowed;
+}
+
+.indexNumber {
+  flex: none;
+  inline-size: 2.25rem;
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+
+.indexLabel {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--step-4);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+}
+
+/* O fio pontilhado do manual como condutor de índice. */
+.indexLeader {
+  flex: 1;
+  min-inline-size: var(--space-md);
+  block-size: 1px;
+  background-image: radial-gradient(circle, currentColor 0.65px, transparent 0.75px);
+  background-size: 7px 1px;
+  background-repeat: repeat-x;
+  opacity: 0.4;
+}
+
+.indexCount {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--mono-md);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  color: inherit;
+}
+
+/* --------------------------------------------------------- 03 · origens */
+
+.origins {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: var(--space-md);
+}
+
+@media (min-width: 768px) {
+  .origins {
+    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    gap: var(--space-lg);
+  }
+}
+
+.origin {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  padding-block: var(--space-2xs);
+  min-block-size: 44px;
+  color: var(--ink);
+}
+
+.originSeal {
+  inline-size: clamp(58px, 9vw, 92px);
+  block-size: auto;
+  transition: transform var(--dur-base) var(--ease-brand);
+}
+
+.origin:hover .originSeal,
+.origin:focus-visible .originSeal {
+  /* Um selo que assenta na página quando você o escolhe — nada elástico. */
+  transform: rotate(-4deg) scale(1.05);
+}
+
+.originName {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  text-align: center;
+}
+
+.originCount {
+  font-family: var(--font-mono);
+  font-size: var(--mono-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+}
+
+.otherOrigins {
+  display: grid;
+  gap: var(--space-sm);
+  padding-block-start: var(--space-md);
+  border-block-start: 1px solid var(--rule);
+}
+
+.otherLabel {
+  font-family: var(--font-mono);
+  font-size: var(--mono-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+}
+
+.otherList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-xs);
+}
+
+.otherPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-block-size: 44px;
+  padding-inline: var(--space-xs);
+  border: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  color: var(--ink-muted);
+  transition:
+    border-color var(--dur-fast) var(--ease-inout),
+    color var(--dur-fast) var(--ease-inout);
+}
+
+.otherPill:hover,
+.otherPill:focus-visible {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.otherCount {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--mono-xs);
+  color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------- saída do portal */
+
+.escape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-block-start: var(--space-lg);
+  border-block-start: 1px solid var(--rule-strong);
+}
+
+.seeAll {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-block-size: 52px;
+  padding-inline: var(--space-md);
+  background-color: var(--ink);
+  color: var(--surface);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
+.seeAllCount {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.62;
+}
+
+.escapeNote {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--step-4);
+  line-height: var(--leading-title);
+  color: var(--ink-muted);
+}
+
+/* =============================================================== a lista */
+
+.results {
+  padding-block: var(--space-lg) var(--section-y);
+}
+
+.layout {
+  display: grid;
+  gap: var(--space-xl);
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    /* Rail estreito e coluna larga: a carta é o protagonista, o filtro é
+       ferramenta. */
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    gap: var(--space-2xl);
+    align-items: start;
+  }
+}
+
+.column {
+  min-inline-size: 0;
+}
+
+.columnHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding-block-end: var(--space-md);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-block-size: 36px;
+  padding-inline: 0.7rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  transition:
+    background-color var(--dur-fast) var(--ease-inout),
+    color var(--dur-fast) var(--ease-inout);
+}
+
+.chip:hover,
+.chip:focus-visible {
+  background-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.chipX {
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.allNote {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+}
+
+.restart {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-muted);
+  min-block-size: 44px;
+  border-block-end: 1px solid var(--rule-strong);
+  padding-inline: 0.15rem;
+}
+
+.restart:hover,
+.restart:focus-visible {
+  color: var(--accent);
+  border-block-end-color: var(--accent);
+}
+
+/* ------------------------------------------------------- blocos por estilo */
+
+.block {
+  padding-block-start: var(--space-lg);
+}
+
+.blockTitle {
+  position: sticky;
+  /* Gruda logo abaixo da barra: rolando 60 rótulos você nunca perde de vista
+     em que estilo está. */
+  inset-block-start: calc(var(--header-h) + var(--safe-top) + 3.25rem);
+  z-index: var(--z-raised);
+  padding-block: var(--space-2xs);
+  background-color: var(--surface);
+  font-family: var(--font-mono);
+  font-size: var(--mono-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--accent);
+}
+
+.list {
+  display: grid;
+}
+
+/* ----------------------------------------------------------- carregar mais */
+
+.moreRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  padding-block-start: var(--space-xl);
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-block-size: 52px;
+  padding-inline: var(--space-md);
+  border: 1px solid var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink);
+  transition:
+    background-color var(--dur-fast) var(--ease-inout),
+    color var(--dur-fast) var(--ease-inout);
+}
+
+.more:hover,
+.more:focus-visible {
+  background-color: var(--ink);
+  color: var(--surface);
+}
+
+.moreCount {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
+
+.moreProgress {
+  font-family: var(--font-mono);
+  font-size: var(--mono-xs);
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------------ estado vazio */
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-sm);
+  padding-block: var(--space-2xl);
+  border-block-start: 1px solid var(--rule);
+}
+
+.emptyTitle {
+  font-family: var(--font-serif);
+  font-size: var(--step-3);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  color: var(--ink);
+  max-inline-size: 22ch;
+}
+
+.emptyHelp {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+  padding-block-start: var(--space-sm);
+}
+
+.emptyActions {
+  display: grid;
+  gap: var(--space-2xs);
+  inline-size: 100%;
+  max-inline-size: 34rem;
+}
+
+.emptyAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  inline-size: 100%;
+  min-block-size: 52px;
+  padding-inline: var(--space-sm);
+  border: 1px solid var(--rule-strong);
+  font-family: var(--font-mono);
+  font-size: var(--mono-md);
+  text-align: start;
+  color: var(--ink);
+  transition: border-color var(--dur-fast) var(--ease-inout);
+}
+
+.emptyAction:hover,
+.emptyAction:focus-visible {
+  border-color: var(--accent);
+}
+
+.emptyActionCount {
+  flex: none;
+  font-size: var(--mono-xs);
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--accent);
+}
+
+.emptyClear {
+  margin-block-start: var(--space-sm);
+  min-block-size: 44px;
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-muted);
+  border-block-end: 1px solid var(--rule-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .servingArt,
+  .originSeal {
+    transition: none;
+  }
+
+  .servingOption:hover .artGlass,
+  .servingOption:hover .artFrieze,
+  .origin:hover .originSeal,
+  .origin:focus-visible .originSeal {
+    transform: none;
+  }
+}

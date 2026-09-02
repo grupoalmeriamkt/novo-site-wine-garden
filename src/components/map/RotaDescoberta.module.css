@@ -1,0 +1,249 @@
+.carta {
+  display: grid;
+  gap: var(--space-md);
+  align-content: start;
+}
+
+/* ---------------------------------------------------------------- escolha */
+
+.pergunta {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/*
+ * Vocabulário de carimbo, não de chip de app: retângulo de cantos retos,
+ * filete fino, mono em caixa alta. O ativo inverte para o púrpura da marca.
+ */
+.opcao {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  padding-inline: 0.9rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-xs);
+  background-color: transparent;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  transition:
+    background-color var(--dur-fast) var(--ease-brand),
+    border-color var(--dur-fast) var(--ease-brand),
+    color var(--dur-fast) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .opcao:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+.opcao[data-ativo] {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ----------------------------------------------------------------- carta */
+
+.traçado {
+  position: relative;
+  display: grid;
+  gap: var(--space-sm);
+  margin: 0;
+}
+
+.svg {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 1;
+  /* A carta é desenhada na cor de traço da marca; a malha e o X herdam. */
+  color: var(--trace);
+  max-block-size: 22rem;
+  justify-self: center;
+}
+
+.rota {
+  /* O comprimento e o offset são escritos pelo componente: o traço cresce da
+     origem até o destino e só então vira o pontilhado da marca. */
+  vector-effect: non-scaling-stroke;
+}
+
+.pontoOrigem {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.5;
+  vector-effect: non-scaling-stroke;
+}
+
+/* O X que marca o lugar, com o anel de "região" em volta. */
+.destino {
+  color: var(--accent);
+}
+
+.destino circle {
+  animation: pulsoAnel 3.2s var(--ease-inout) infinite;
+  transform-origin: center;
+}
+
+@keyframes pulsoAnel {
+  0%,
+  100% {
+    opacity: 0.35;
+    scale: 0.9;
+  }
+  50% {
+    opacity: 0.9;
+    scale: 1.06;
+  }
+}
+
+/* --------------------------------------------------------------- legenda */
+
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  color: var(--ink-muted);
+  padding-block-start: var(--space-2xs);
+  border-block-start: 1px solid var(--rule);
+}
+
+.de,
+.para {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
+.para {
+  color: var(--ink);
+}
+
+.setaLegenda {
+  color: var(--ink-faint);
+}
+
+.numeros {
+  margin-inline-start: auto;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.numeros strong {
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------------- estado */
+
+.estado {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--ink-faint);
+  min-block-size: 1.5em;
+  max-width: 46ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opcao {
+    transition: none;
+  }
+
+  .destino circle {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* ------------------------------------------------- minha localização */
+
+/*
+ * O botão da posição real tem peso próprio: é a resposta certa para quem está
+ * a caminho, e os pontos de referência são a alternativa. A borda cheia o
+ * separa dos demais sem precisar de cor de destaque, que ficaria para o estado
+ * ativo.
+ */
+.opcaoGeo {
+  gap: 0.45rem;
+  border-color: var(--ink-muted);
+  color: var(--ink);
+}
+
+.opcaoGeo:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.iconeGeo {
+  inline-size: 0.85rem;
+  block-size: 0.85rem;
+  flex: none;
+}
+
+/* -------------------------------------------------------------- jornada */
+
+.jornada {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  justify-self: start;
+  min-block-size: 52px;
+  padding-inline: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-pill);
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  transition:
+    background-color var(--dur-fast) var(--ease-brand),
+    color var(--dur-fast) var(--ease-brand);
+}
+
+/* O tempo entra dentro do botão, em cápsula: é a informação que decide o
+   clique, e lê melhor colada à ação do que numa linha separada. */
+.jornadaTempo {
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-xs);
+  background-color: color-mix(in oklab, var(--offwhite) 22%, transparent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.jornadaSeta {
+  inline-size: 1.4rem;
+  block-size: 0.7rem;
+  transition: transform var(--dur-base) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .jornada:hover {
+    background-color: var(--ink);
+    color: var(--surface);
+  }
+
+  .jornada:hover .jornadaSeta {
+    transform: translateX(0.3rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jornada,
+  .jornadaSeta {
+    transition: none;
+  }
+}

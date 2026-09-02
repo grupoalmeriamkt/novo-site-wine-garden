@@ -1,0 +1,630 @@
+/* =========================================================================
+   GASTRONOMIA — abertura fotográfica (noturna) + harmonizações (bege)
+
+   Duas faixas de peles opostas. A primeira é quase muda e vive de corte e
+   escala; a segunda é onde o texto vira interface e a cozinha aponta para a
+   carta.
+
+   NOTA DE ESPECIFICIDADE: toda regra que mexe na largura de um `Reveal` é
+   escrita com o pai junto (`.intro .introFrame`, `.movement .frame`…). O
+   componente já declara `width: 100%` na própria classe, e uma regra de
+   especificidade igual dependeria da ordem em que os CSS Modules entram no
+   bundle — que não é nossa para controlar.
+   ========================================================================= */
+
+/* Container editorial. Repetido em cada bloco porque a `<Section>` não tem
+   padding lateral — é o que permite a faixa de ponta a ponta lá embaixo. */
+.intro,
+.diptych,
+.pairingsHead,
+.movements,
+.closing {
+  inline-size: 100%;
+  max-inline-size: var(--container-max);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+/* -------------------------------------------------------------- tipografia */
+
+.kicker {
+  display: block;
+  color: var(--accent);
+}
+
+.title {
+  margin-block-start: var(--space-sm);
+}
+
+.titleLine {
+  display: block;
+}
+
+/* Diagramação orgânica: a segunda linha não começa onde a primeira, para o
+   texto percorrer um caminho em vez de morar numa caixa ortogonal. Ela também
+   cai um degrau na escala — assim a palavra longa cabe na coluna de sete
+   módulos sem invadir a fotografia ao lado, e o contraste de corpo entre as
+   duas linhas vira parte da composição. */
+.titleShift {
+  margin-inline-start: clamp(1rem, 9vw, 8rem);
+  font-size: var(--step-2);
+}
+
+.titleShiftSm {
+  margin-inline-start: clamp(0.75rem, 6vw, 5rem);
+}
+
+.italic {
+  font-style: italic;
+  color: var(--accent);
+}
+
+/* =========================================================================
+   1. ABERTURA
+   ========================================================================= */
+
+.overture {
+  /* Os quadros que avançam para fora do container são cortados aqui: sem o
+     clip, a foto que entra pela borda criaria rolagem lateral no iOS. */
+  overflow: clip;
+}
+
+.intro {
+  display: grid;
+  gap: var(--space-xl);
+}
+
+.facts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-block-start: var(--space-lg);
+}
+
+/* O pontilhado da marca em escala de micro-interface, separando os dois
+   números sem virar uma régua geométrica. */
+.factsRule {
+  flex: 1 1 2rem;
+  max-inline-size: 6rem;
+  block-size: 1px;
+  background-image: repeating-linear-gradient(to right, var(--ink-faint) 0 3px, transparent 3px 9px);
+}
+
+/* Sai pela direita e é cortada pela tela: um quadro parcial mantém o olho em
+   movimento, um quadro inteiro faz o olho pousar. */
+.intro .introFrame {
+  inline-size: min(72%, 20rem);
+  justify-self: end;
+  margin-inline-end: calc(-1 * (var(--gutter) + 8vw));
+}
+
+/* --------------------------------------------- faixa de ponta a ponta */
+
+.bandWrap {
+  margin-block: clamp(3rem, 9vw, 8rem);
+}
+
+.bandWrap .band {
+  /* A proporção declarada no componente governa telas pequenas; em telas
+     largas o teto impede que a faixa vire uma parede de 1400 px de altura. */
+  max-block-size: min(80svh, 860px);
+}
+
+/* ------------------------------------------------------------- díptico */
+
+.diptych {
+  display: grid;
+  gap: var(--space-md);
+}
+
+/* Sangra pela esquerda — o oposto do quadro da abertura, para os dois gestos
+   não rimarem. */
+.diptych .dipMain {
+  inline-size: calc(100% + var(--gutter));
+  margin-inline-start: calc(-1 * var(--gutter));
+}
+
+/* Sobe e cavalga a borda inferior do quadro grande: fotografia sobre
+   fotografia, como na colagem impressa. */
+.diptych .dipInset {
+  inline-size: min(52%, 15rem);
+  justify-self: end;
+  margin-block-start: calc(-1 * clamp(2.5rem, 12vw, 7rem));
+  margin-inline-end: calc(-1 * var(--gutter));
+}
+
+@media (min-width: 900px) {
+  .intro {
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+    column-gap: var(--grid-gap);
+    align-items: end;
+  }
+
+  .introCopy {
+    grid-column: 1 / span 7;
+  }
+
+  .intro .introFrame {
+    grid-column: 9 / -1;
+    /* Mais larga que a própria coluna: o excedente passa da borda da tela e o
+       `overflow: clip` da seção corta. (Com largura definida, `justify-self`
+       vira alinhamento no início — daí o excedente cair todo à direita.) */
+    inline-size: calc(100% + clamp(2rem, 7vw, 9rem));
+    justify-self: start;
+    margin-inline-end: 0;
+    margin-block-end: clamp(0.5rem, 2vw, 2rem);
+  }
+
+  .diptych {
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+    column-gap: var(--grid-gap);
+    align-items: start;
+  }
+
+  .diptych .dipMain {
+    grid-column: 1 / span 7;
+    inline-size: calc(100% + clamp(2rem, 6vw, 7rem));
+    margin-inline-start: calc(-1 * clamp(2rem, 6vw, 7rem));
+  }
+
+  .diptych .dipInset {
+    grid-column: 9 / span 3;
+    inline-size: 100%;
+    justify-self: stretch;
+    margin-inline-end: 0;
+    /* Desce bastante: as duas fotos nunca compartilham uma linha de base. */
+    margin-block-start: clamp(4rem, 13vw, 10rem);
+  }
+}
+
+/* O parallax move a mídia dentro do quadro. Sem sobra vertical, o
+   deslocamento descobriria a borda da moldura — é a mesma folga do herói. */
+.overscan [data-media] {
+  inset-block: -8%;
+}
+
+/* =========================================================================
+   2. HARMONIZAÇÕES
+   ========================================================================= */
+
+.pairings {
+  position: relative;
+  /* Os quadros dos compassos encostam na borda da tela; o clip garante que
+     nenhum arredondamento de sub-pixel vire rolagem lateral. */
+  overflow: clip;
+}
+
+.pairingsHead {
+  position: relative;
+  display: grid;
+  gap: var(--space-lg);
+  padding-block-end: clamp(2.5rem, 8vw, 6rem);
+}
+
+.headIntro {
+  color: var(--ink);
+}
+
+/* A linha pontilhada liga o fim do título ao começo do texto explicativo — o
+   gesto "quebra de texto com linha conectando" do manual. Só onde as duas
+   colunas coexistem: empilhado, não há vão para atravessar. */
+.traceSlot {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .pairingsHead {
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+    column-gap: var(--grid-gap);
+    align-items: end;
+  }
+
+  .headCopy {
+    grid-column: 1 / span 6;
+  }
+
+  .headIntro {
+    grid-column: 8 / span 5;
+    padding-block-end: var(--space-sm);
+  }
+
+  .traceSlot {
+    display: block;
+    position: absolute;
+    inset-inline-start: 44%;
+    inline-size: 22%;
+    inset-block-start: 34%;
+    block-size: 42%;
+    color: var(--trace);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+}
+
+/* ---------------------------------------------------------- os compassos */
+
+.movements {
+  display: grid;
+  gap: clamp(3.5rem, 11vw, 9rem);
+  margin-block-start: clamp(1rem, 4vw, 3rem);
+}
+
+.movement {
+  display: grid;
+  gap: var(--space-md);
+  align-items: start;
+}
+
+/* No celular a alternância é de borda: um quadro encosta na esquerda, o
+   seguinte na direita, e o terceiro encolhe. É o que impede a lista de virar
+   uma pilha de cartões idênticos. */
+.movement .frame {
+  inline-size: calc(100% + var(--gutter));
+  /* Mesmo teto do desktop, mais baixo: numa tela estreita a foto vertical
+     ocupa quase a viewport inteira e a prévia deixa de caber na cabeça de quem
+     rola. O object-fit: cover corta pelo centro, onde o prato está. */
+  max-block-size: 46vh;
+}
+
+.movement:nth-child(odd) .frame {
+  justify-self: start;
+  margin-inline-start: calc(-1 * var(--gutter));
+}
+
+.movement:nth-child(even) .frame {
+  justify-self: end;
+  margin-inline-end: calc(-1 * var(--gutter));
+}
+
+.movement:nth-child(3n) .frame {
+  inline-size: min(74%, 18rem);
+  justify-self: start;
+  margin-inline: 0;
+}
+
+.text {
+  display: grid;
+  gap: var(--space-xs);
+  align-content: center;
+}
+
+.index {
+  color: var(--accent);
+}
+
+.dishName {
+  margin-block-start: var(--space-3xs);
+}
+
+/* Guia pontilhada até o preço: é como um cardápio impresso alinha valor, e de
+   quebra é a linha da marca em escala de interface. */
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  margin-block-start: var(--space-2xs);
+}
+
+.leader {
+  flex: 1 1 auto;
+  align-self: center;
+  block-size: 1px;
+  background-image: repeating-linear-gradient(to right, var(--ink-muted) 0 2px, transparent 2px 8px);
+}
+
+.price {
+  flex: 0 0 auto;
+  color: var(--ink);
+}
+
+.description {
+  margin-block-start: var(--space-2xs);
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------- a ponte real */
+
+.pairing {
+  margin-block-start: var(--space-sm);
+  padding-block-start: var(--space-sm);
+  border-block-start: 1px solid var(--rule-strong);
+}
+
+.pairingLabel {
+  display: block;
+  color: var(--ink);
+}
+
+.pairingList {
+  display: flex;
+  flex-wrap: wrap;
+  /* Gap apertado no celular para que duas harmonizações caibam na MESMA linha:
+     quebrando, cada uma soma seus 44px de alvo e o bloco de texto do prato
+     cresce ~90px. Em tela larga o respiro volta. */
+  gap: 0 var(--space-md);
+}
+
+@media (min-width: 700px) {
+  .pairingList {
+    gap: 0 var(--space-lg);
+  }
+}
+
+.pairingLink,
+.pairingPlain {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  /* Alvo de toque de 44 px sem inflar a altura da linha (WCAG 2.2 AA). */
+  min-block-size: 44px;
+  color: var(--ink);
+}
+
+.pairingLink {
+  transition:
+    color var(--dur-fast) var(--ease-brand),
+    transform var(--dur-fast) var(--ease-brand);
+}
+
+/* O ponto é o vestígio da linha pontilhada: cada categoria é uma parada da
+   trajetória que vai da cozinha até a carta. */
+.pairingDot {
+  flex: 0 0 auto;
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: var(--radius-pill);
+  background-color: var(--accent);
+  transition: transform var(--dur-fast) var(--ease-brand);
+}
+
+/* O sublinhado tracejado avisa que a categoria leva a algum lugar sem
+   precisar de um botão dentro do texto. */
+.pairingLink > :last-child {
+  border-block-end: 1px dashed var(--rule-strong);
+  padding-block-end: 2px;
+  transition:
+    border-color var(--dur-fast) var(--ease-brand),
+    border-style var(--dur-fast) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pairingLink:hover {
+    color: var(--accent);
+    transform: translateX(3px);
+  }
+
+  .pairingLink:hover > :last-child {
+    border-block-end-style: solid;
+    border-block-end-color: var(--accent);
+  }
+
+  .pairingLink:hover .pairingDot {
+    transform: scale(1.6);
+  }
+}
+
+.pairingPlain .pairingDot {
+  background-color: var(--ink-muted);
+}
+
+@media (min-width: 900px) {
+  .movement {
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+    column-gap: var(--grid-gap);
+    align-items: center;
+  }
+
+  /* Zera o jogo de bordas do celular. A lista cobre as três especificidades
+     usadas lá em cima para não depender da ordem do bundle. */
+  .movement .frame,
+  .movement:nth-child(odd) .frame,
+  .movement:nth-child(even) .frame,
+  .movement:nth-child(3n) .frame {
+    inline-size: 100%;
+    justify-self: stretch;
+    margin-inline: 0;
+  }
+
+  /* Base: quadro à esquerda, texto à direita — e o inverso nos pares. */
+  .movement .frame {
+    grid-row: 1;
+    grid-column: 1 / span 6;
+    /*
+     * Teto de altura para o quadro.
+     *
+     * O acervo é quase todo vertical (3:4, 4:5). Em seis colunas de desktop
+     * isso rende 700–870px por prato, e três pratos empurravam a seção para
+     * cinco telas — a maior do site. O `aspect-ratio` do Reveal continua
+     * governando a proporção até este limite; passado ele, o `object-fit:
+     * cover` da imagem assume e corta pelo centro, que é onde o prato está.
+     */
+    max-block-size: 58vh;
+  }
+
+  .movement .text {
+    grid-row: 1;
+    grid-column: 8 / span 5;
+  }
+
+  .movement:nth-child(even) .frame {
+    grid-column: 7 / span 6;
+  }
+
+  .movement:nth-child(even) .text {
+    grid-column: 1 / span 5;
+  }
+
+  /* Os pares sobem: as fileiras deixam de se alinhar e a lista desce em
+     diagonal em vez de em degraus. */
+  .movement:nth-child(even) {
+    margin-block-start: clamp(-6rem, -4vw, -1rem);
+  }
+}
+
+/* Larguras fora do compasso. Sem elas a alternância vira tabela: o terceiro
+   quadro encolhe, o quinto abre até sete colunas e o sexto fecha a sequência
+   pequeno de novo. Só a partir do desktop: entre 900 e 1200 px uma coluna de
+   texto de quatro módulos ficaria estreita demais para o nome em serifa. */
+@media (min-width: 1200px) {
+  .movement:nth-child(3) .frame {
+    grid-column: 2 / span 4;
+  }
+
+  .movement:nth-child(3) .text {
+    grid-column: 7 / span 5;
+  }
+
+  .movement:nth-child(5) .frame {
+    grid-column: 1 / span 7;
+  }
+
+  .movement:nth-child(5) .text {
+    grid-column: 9 / span 4;
+  }
+
+  .movement:nth-child(6) .frame {
+    grid-column: 8 / span 4;
+  }
+
+  .movement:nth-child(6) .text {
+    grid-column: 1 / span 6;
+  }
+}
+
+/* ------------------------------------------------------------ fechamento */
+
+.closing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  margin-block-start: clamp(3.5rem, 10vw, 8rem);
+  padding-block-start: var(--space-lg);
+  border-block-start: 1px solid var(--rule);
+}
+
+.closingNote {
+  color: var(--ink);
+}
+
+/* =========================================================================
+   MOVIMENTO REDUZIDO
+   As revelações e o parallax já saem cedo dentro de Reveal e Trace; aqui
+   restam as transições de interface.
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .pairingLink,
+  .pairingDot,
+  .pairingLink > :last-child {
+    transition: none;
+  }
+
+  .pairingLink:hover,
+  .pairingLink:hover .pairingDot {
+    transform: none;
+  }
+}
+
+/* =========================================================================
+   ÍNDICE COMPACTO
+   Fecha a seção depois dos três destaques com foto. Uma linha por prato, no
+   vocabulário de cardápio impresso: número, nome em serifa, guia pontilhada
+   até o preço, harmonização em mono embaixo.
+   ========================================================================= */
+
+.index {
+  display: grid;
+  width: 100%;
+  max-width: var(--container-editorial);
+  margin-inline: auto;
+  margin-block-start: var(--space-2xl);
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+  border-block-start: 1px solid var(--rule);
+}
+
+.indexRow {
+  display: grid;
+  /* Número | nome+harmonização | guia | preço. A guia é a única coluna que
+     encolhe, então o preço fica sempre colado na margem direita. */
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: var(--space-sm);
+  padding-block: var(--space-md);
+  border-block-end: 1px solid var(--rule);
+}
+
+.indexNumber {
+  color: var(--ink-faint);
+}
+
+.indexMain {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.indexName {
+  font-family: var(--font-serif);
+  font-size: var(--step-4);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-title);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.indexPairings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-sm);
+}
+
+.indexPairing {
+  display: inline-flex;
+  align-items: center;
+  /* Alvo de toque de 44px sem esticar a linha: o padding é vertical e o
+     row-gap do container fica em 0 para compensar. */
+  min-block-size: 44px;
+  color: var(--ink-muted);
+  border-block-end: 1px solid transparent;
+  transition:
+    color var(--dur-fast) var(--ease-brand),
+    border-color var(--dur-fast) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .indexPairing:hover {
+    color: var(--accent);
+    border-block-end-color: currentColor;
+  }
+}
+
+/* A guia pontilhada é a linha da marca em escala de interface — o mesmo gesto
+   que alinha valor num cardápio impresso. */
+.indexLeader {
+  display: none;
+  align-self: center;
+  block-size: 1px;
+  background-image: linear-gradient(to right, var(--rule-strong) 45%, transparent 45%);
+  background-size: 6px 1px;
+  background-repeat: repeat-x;
+}
+
+.indexPrice {
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+@media (min-width: 700px) {
+  .indexRow {
+    grid-template-columns: auto minmax(0, auto) minmax(2rem, 1fr) auto;
+    align-items: center;
+  }
+
+  .indexLeader {
+    display: block;
+  }
+}

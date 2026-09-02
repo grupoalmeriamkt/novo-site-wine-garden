@@ -1,0 +1,326 @@
+/* =========================================================================
+   MANIFESTO
+   A transição do herói noturno para o corpo editorial. O corte de atmosfera é
+   seco de propósito: o herói termina em uva e esta seção abre em offwhite, sem
+   degradê e sem faixa de transição. É o momento em que o site respira.
+   ========================================================================= */
+
+.root {
+  /*
+    Uma só medida de recuo para o palco e para o bloco de baixo, para que a
+    fotografia que sangra saiba exatamente quanto precisa devolver.
+
+    O último termo é o que mantém a composição contida em telas muito largas:
+    acima de --container-max o recuo cresce com a sobra da viewport, de modo que
+    o conteúdo fica centrado E a foto continua alcançando a borda real da tela.
+  */
+  --pad: max(
+    var(--gutter),
+    var(--safe-left),
+    var(--safe-right),
+    calc((100vw - var(--container-max)) / 2 + var(--gutter))
+  );
+
+  /*
+    A escala do display é composta contra a ALTURA do palco, não só contra a
+    largura — três linhas a 20vw estouram qualquer notebook. Nenhum token
+    global pode saber disso, então a medida é local e documentada:
+    · 16.5vw  manda no celular e faz a frase quase tocar as duas margens;
+    · 16rem   é o teto absoluto, para a frase não virar cartaz em 4K;
+    · 26svh   é o que garante que as três linhas caibam num 13" deitado.
+    svh e não dvh: a barra de endereço do Safari não pode remedir o tipo.
+  */
+  --phrase-size: min(16.5vw, 16rem, 26svh);
+
+  position: relative;
+}
+
+/* ========================================================== 1. O PALCO ==== */
+
+.stage {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  align-items: start;
+  /* Uma tela quase inteira já no celular: a frase é a seção, não um título
+     dela. Fica um resto visível embaixo para o dedo saber que há mais. */
+  min-block-size: 92svh;
+  padding-inline: var(--pad);
+  padding-block: calc(var(--header-h) + var(--safe-top) + var(--space-lg)) var(--space-2xl);
+}
+
+@media (min-width: 1024px) and (pointer: fine) {
+  .stage {
+    /* Exatamente uma tela: é o que o ScrollTrigger fixa. Um palco mais alto
+       que a viewport rolaria por dentro do próprio pin. */
+    min-block-size: 100svh;
+  }
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--ink-faint);
+}
+
+/* Filete curto antes do rótulo — abre a seção como um cabeçalho de página
+   impressa, sem custar um componente. */
+.eyebrow::before {
+  content: '';
+  inline-size: clamp(1.75rem, 5vw, 4rem);
+  block-size: 1px;
+  background-color: var(--rule-strong);
+}
+
+.phraseViewport {
+  align-self: center;
+  /* A referência de `em` de toda a composição da frase: recuos, folgas da
+     máscara e limites de corte passam a escalar junto com o tipo. */
+  font-size: var(--phrase-size);
+  /* Corta as palavras que ainda estão fora da tela sem cortar acentos e
+     descendentes: `clip` corta nos dois eixos, então devolvemos a folga
+     vertical com padding e a retiramos do fluxo com a margem negativa. */
+  padding-block: 0.14em;
+  margin-block: -0.14em;
+  overflow: clip;
+}
+
+.phrase {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: inherit;
+  /* O manual escreve esta frase exatamente assim: "Instrument Serif -25".
+     -25 na unidade do Illustrator = -0.025em = --tracking-display. */
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-display);
+  color: var(--ink);
+  /* A quebra de linha é composição, não acaso: as três linhas estão escritas
+     no componente e nenhuma delas pode dobrar sozinha. */
+  text-wrap: nowrap;
+  white-space: nowrap;
+  /* A Instrument Serif tem hastes de alto contraste; sem isto o Chrome no
+     Windows sintetiza um peso falso e o desenho perde o contraste didone. */
+  font-synthesis: none;
+}
+
+.line {
+  display: block;
+}
+
+/*
+  Diagramação orgânica (manual, p.13): a frase desce em escada, o texto não
+  fica preso a uma caixa ortogonal. Os recuos são em `em` para a escada manter
+  a mesma proporção do celular ao desktop — e para que a linha mais recuada
+  nunca possa exceder a margem, já que palavra e recuo crescem juntos.
+*/
+.line[data-line='1'] {
+  padding-inline-start: 0.5em;
+}
+
+.line[data-line='2'] {
+  padding-inline-start: 1.1em;
+}
+
+.word {
+  display: inline-block;
+  position: relative;
+}
+
+/*
+  A máscara é o que permite a entrada vertical. A folga assimétrica existe
+  porque `line-height: 0.85` deixa acento e descendente para fora da caixa de
+  linha: 0.10em em cima cobre o acento do "é", 0.16em embaixo cobre o "ç".
+  As margens negativas devolvem a folga ao fluxo para a escada não abrir.
+*/
+.wordMask {
+  display: block;
+  overflow: hidden;
+  padding-block: 0.1em 0.16em;
+  margin-block: -0.1em -0.16em;
+}
+
+.wordInner {
+  display: block;
+  position: relative;
+}
+
+/*
+  O eco em --accent fica permanentemente sobreposto à palavra, alinhado ao
+  glifo por ser o mesmo texto na mesma métrica. Animar a opacidade dele é o que
+  troca a cor sem tocar em `color` — a única propriedade que muda é a que a
+  GPU compõe de graça. Fora da tela do JS ele já está visível: sem script, a
+  palavra que importa nasce na cor da marca.
+*/
+.echo {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  color: var(--accent);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ===================================================== 2. DEPOIS DA FRASE == */
+
+.aftermath {
+  display: grid;
+  gap: var(--space-lg);
+  padding-inline: var(--pad);
+  padding-block: clamp(var(--space-2xl), 13vh, var(--space-3xl)) var(--section-y);
+}
+
+.body {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.lead {
+  /* O primeiro período é uma afirmação, não uma legenda: ganha a cor cheia. */
+  color: var(--ink);
+}
+
+.tail {
+  max-inline-size: var(--container-prose);
+}
+
+/* No empilhado o traço não tem vão para atravessar; ele só faz sentido quando
+   existe a coluna vazia ao lado da fotografia. */
+.traceSlot {
+  display: none;
+}
+
+.dataTitle {
+  display: block;
+  margin-block-end: var(--space-sm);
+}
+
+/*
+  Os números da carta são DADO, não cartão de estatística: um único filete
+  acima da faixa, tudo em mono, nenhuma caixa, nenhum raio, nenhuma sombra.
+  A leitura é de manifesto de carga — rótulo em cima, número embaixo.
+*/
+.data {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md) var(--space-lg);
+  padding-block-start: var(--space-md);
+  border-block-start: 1px solid var(--rule);
+}
+
+.datum {
+  display: grid;
+  gap: 0.15rem;
+  align-content: start;
+}
+
+.value {
+  /* Um degrau acima da escala mono da interface: o número precisa ter presença
+     de dado publicado sem virar título. Tabular vem do próprio MonoLabel. */
+  font-size: clamp(1.5rem, 4.5vw, 2.15rem);
+  letter-spacing: var(--tracking-subtitle);
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------ fotografia */
+
+.figure {
+  /* Full-bleed nos dois lados no celular: a foto é a única coisa que atravessa
+     as margens, e é assim que ela pesa mais que o texto ao redor. */
+  margin-inline: calc(-1 * var(--pad));
+}
+
+.photo {
+  /* Sem raio: fotografia editorial é edge-to-edge (regra do manual). */
+  border-radius: var(--radius-none);
+}
+
+.caption {
+  margin-block-start: var(--space-sm);
+  padding-inline: var(--pad);
+}
+
+/* ============================================ 3. COMPOSIÇÃO ASSIMÉTRICA === */
+
+@media (min-width: 1024px) {
+  .aftermath {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    /* A linha do meio é a única flexível: quando a fotografia (que atravessa
+       as três linhas) pede mais altura que a coluna de texto, é o vão do traço
+       que cresce — e não os espaços entre parágrafo, traço e números. */
+    grid-template-rows: auto 1fr auto;
+    column-gap: var(--grid-gap);
+    row-gap: 0;
+    align-items: start;
+  }
+
+  .body {
+    grid-column: 1 / 7;
+    grid-row: 1;
+  }
+
+  .traceSlot {
+    display: block;
+    grid-column: 2 / 7;
+    grid-row: 2;
+    align-self: stretch;
+    min-block-size: clamp(4rem, 9vw, 8rem);
+    /* Teto para o SVG não ser esticado a ponto de a curva virar um zigue-zague
+       vertical — ele usa preserveAspectRatio="none". */
+    max-block-size: 20rem;
+    color: var(--trace);
+  }
+
+  .dataBlock {
+    grid-column: 1 / 7;
+    grid-row: 3;
+    align-self: end;
+  }
+
+  .data {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /*
+    Colunas 8 a 12 e mais o recuo: a foto começa depois de uma coluna vazia,
+    sangra pela direita e não se alinha com o topo do texto. Nada aqui é
+    centralizado — é essa recusa que separa a página de uma grade de cards.
+  */
+  .figure {
+    grid-column: 8 / -1;
+    grid-row: 1 / 4;
+    margin-inline: 0 calc(-1 * var(--pad));
+    /* Descida deliberada: o olho encontra o texto primeiro e cai na foto
+       depois, no mesmo sentido da leitura. */
+    margin-block-start: clamp(1.5rem, 5vw, 5rem);
+  }
+
+  .caption {
+    padding-inline: 0;
+  }
+}
+
+/* ================================================== 4. MENOS MOVIMENTO ==== */
+
+/*
+  Não há animação declarada em CSS aqui — todo o movimento é GSAP, e as duas
+  matchMedia do componente exigem `prefers-reduced-motion: no-preference`.
+  O estado de repouso desta folha JÁ é o estado final da composição: sem JS,
+  com motion reduzido ou num navegador que não bata com nenhuma das queries, a
+  frase aparece inteira, no lugar, com "escolhas" na cor da marca.
+  Resta só devolver as promoções de camada que deixariam de ter uso.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .word,
+  .echo {
+    will-change: auto;
+  }
+}
+
+@media (min-width: 1024px) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  /* Só as palavras que efetivamente viajam ganham camada própria, e só na
+     configuração em que elas viajam. */
+  .line[data-line='1'] .word,
+  .line[data-line='2'] .word {
+    will-change: transform;
+  }
+}

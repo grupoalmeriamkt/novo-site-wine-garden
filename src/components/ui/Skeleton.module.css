@@ -1,0 +1,113 @@
+/* O varrimento é lento e de baixa amplitude: rápido demais lê como erro. */
+@keyframes sweep {
+  from {
+    background-position: -180% 0;
+  }
+  to {
+    background-position: 180% 0;
+  }
+}
+
+.rows,
+.frame,
+.num,
+.name,
+.price {
+  background-image: linear-gradient(
+    100deg,
+    var(--surface-sunken) 30%,
+    color-mix(in oklab, var(--ink) 7%, var(--surface-sunken)) 50%,
+    var(--surface-sunken) 70%
+  );
+  background-size: 220% 100%;
+  animation: sweep 2.4s var(--ease-inout) infinite;
+}
+
+.rows {
+  display: grid;
+  gap: 0;
+  background: none;
+  animation: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding-block: var(--space-md);
+  border-block-end: 1px solid var(--rule);
+  background: none;
+  animation: none;
+}
+
+.num {
+  flex: none;
+  inline-size: 1.75rem;
+  block-size: 0.625rem;
+  border-radius: var(--radius-xs);
+}
+
+.name {
+  block-size: 1rem;
+  border-radius: var(--radius-xs);
+}
+
+.price {
+  flex: none;
+  margin-inline-start: auto;
+  inline-size: 4rem;
+  block-size: 0.75rem;
+  border-radius: var(--radius-xs);
+}
+
+.frame {
+  inline-size: 100%;
+  border-radius: var(--radius-none);
+}
+
+.loading {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-sm);
+  padding-block: var(--space-2xl);
+  background: none;
+  animation: none;
+}
+
+/* A linha pontilhada da marca em movimento — o traço que "viaja". */
+.trace {
+  inline-size: min(240px, 60vw);
+  block-size: 1px;
+  background-image: linear-gradient(to right, currentColor 45%, transparent 45%);
+  background-size: 12px 1px;
+  background-repeat: repeat-x;
+  color: var(--ink-faint);
+  animation: travel 1.8s linear infinite;
+}
+
+@keyframes travel {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: 12px;
+  }
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame,
+  .num,
+  .name,
+  .price,
+  .trace {
+    animation: none;
+  }
+}

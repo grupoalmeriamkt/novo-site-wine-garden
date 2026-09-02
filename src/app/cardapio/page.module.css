@@ -1,0 +1,165 @@
+/* =========================================================================
+   PÁGINA DO CARDÁPIO — ABERTURA E PONTE PARA A CARTA
+   O índice em si mora em MenuBrowser; aqui ficam só as duas peças estáticas
+   que o cercam.
+   ========================================================================= */
+
+.page {
+  /* A abertura já é o começo da lista: o respiro grande fica só embaixo. */
+  padding-block-end: var(--section-y);
+}
+
+.opener {
+  inline-size: 100%;
+  max-inline-size: var(--container-editorial);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+  padding-block-end: var(--space-lg);
+}
+
+.kicker {
+  display: block;
+}
+
+.title {
+  margin-block-start: var(--space-md);
+}
+
+/* Diagramação orgânica (manual, p.13): as duas metades da frase não ficam
+   empilhadas em bloco — a segunda entra deslocada, e é o traço abaixo que
+   religa uma à outra. */
+.titleLine {
+  display: block;
+}
+
+.titleLineEnd {
+  margin-inline-start: 14%;
+  font-style: italic;
+}
+
+/* O traço sai do fim da frase (à direita) e desce até o começo da ficha
+   técnica (à esquerda): liga o título ao índice, que é a viagem da página. */
+.traceSlot {
+  position: relative;
+  block-size: var(--space-xl);
+  margin-block-start: var(--space-2xs);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md) var(--space-xl);
+  margin-block-start: var(--space-sm);
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.metaValue {
+  font-family: var(--font-mono);
+  font-size: var(--mono-lg);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.metaLink {
+  /* O mínimo da WCAG 2.2 AA (critério 2.5.8) são 24px; 44 é o AAA (2.5.5).
+     Usamos 44 aqui por coerência com o resto do site — este link leva à carta
+     inteira e é um dos destinos mais buscados da página. */
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--accent);
+  border-block-end: 1px solid color-mix(in oklab, var(--accent) 45%, transparent);
+  transition: border-color var(--dur-fast) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .metaLink:hover {
+    border-block-end-color: var(--accent);
+  }
+}
+
+/* ------------------------------------------------------------ carregando */
+
+.loading {
+  inline-size: 100%;
+  max-inline-size: var(--container-editorial);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+  padding-block-start: var(--space-lg);
+}
+
+/* =================================================================== carta */
+
+.wineInner {
+  display: grid;
+  gap: var(--space-lg);
+  inline-size: 100%;
+  max-inline-size: var(--container-editorial);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+.wineFigure {
+  inline-size: min(100%, 22rem);
+}
+
+@media (min-width: 900px) {
+  .wineInner {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: var(--space-xl);
+    align-items: center;
+  }
+
+  .wineFigure {
+    inline-size: 100%;
+  }
+}
+
+.wineTitle {
+  margin-block-start: var(--space-sm);
+}
+
+.wineText {
+  margin-block-start: var(--space-md);
+}
+
+.wineStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm) var(--space-md);
+  margin-block: var(--space-lg);
+  padding-block: var(--space-md);
+  border-block: 1px solid var(--rule);
+}
+
+@media (min-width: 560px) {
+  .wineStats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.statValue {
+  font-family: var(--font-mono);
+  font-size: var(--mono-lg);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metaLink {
+    transition: none;
+  }
+}

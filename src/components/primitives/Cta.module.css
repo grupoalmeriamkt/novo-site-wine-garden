@@ -1,0 +1,104 @@
+.cta {
+  --pull-x: 0px;
+  --pull-y: 0px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  line-height: 1;
+  border-radius: var(--radius-pill);
+  /* Alvo de toque de 44px mesmo quando o texto é pequeno (WCAG 2.2 AA). */
+  min-height: 44px;
+  transform: translate3d(var(--pull-x), var(--pull-y), 0);
+  transition:
+    transform var(--dur-fast) var(--ease-brand),
+    background-color var(--dur-fast) var(--ease-brand),
+    color var(--dur-fast) var(--ease-brand),
+    border-color var(--dur-fast) var(--ease-brand);
+}
+
+.md {
+  font-size: var(--mono-sm);
+  padding: 0.9rem 1.5rem;
+}
+
+.lg {
+  font-size: var(--mono-md);
+  padding: 1.15rem 2rem;
+}
+
+/* ------------------------------------------------------------- variantes */
+
+.solid {
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent);
+}
+
+.line {
+  background-color: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+}
+
+.ghost {
+  background-color: transparent;
+  color: var(--ink);
+  border: 1px solid transparent;
+  padding-inline: 0;
+}
+
+/* ----------------------------------------------------------------- seta */
+
+.arrow {
+  display: block;
+  width: 1.5rem;
+  overflow: hidden;
+}
+
+.arrow svg {
+  width: 1.5rem;
+  height: 0.75rem;
+  transition: transform var(--dur-base) var(--ease-brand);
+}
+
+/* --------------------------------------------------------------- estados */
+
+@media (hover: hover) and (pointer: fine) {
+  .solid:hover {
+    background-color: var(--ink);
+    border-color: var(--ink);
+    color: var(--surface);
+  }
+
+  .line:hover {
+    border-color: var(--ink);
+    background-color: var(--ink);
+    color: var(--surface);
+  }
+
+  .ghost:hover {
+    color: var(--accent);
+  }
+
+  .cta:hover .arrow svg {
+    transform: translateX(0.35rem);
+  }
+}
+
+.cta:active {
+  /* Compressão mínima: confirma o toque sem parecer um botão de app. */
+  transform: translate3d(var(--pull-x), var(--pull-y), 0) scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta,
+  .arrow svg {
+    transition: none;
+    transform: none;
+  }
+}

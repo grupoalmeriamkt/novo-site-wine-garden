@@ -1,0 +1,414 @@
+/* =========================================================================
+   LOCALIZAÇÃO
+   Tela dividida no desktop: a coluna de texto respira dentro do gutter e a
+   visualização sangra na borda direita, de topo a base da seção. No celular
+   a mesma peça vira uma pilha, com a rota logo abaixo do endereço.
+   ========================================================================= */
+
+.section {
+  /* A estampa sangra além do gutter no celular; sem o clip, a borda direita
+     empurraria o documento. */
+  overflow: clip;
+}
+
+.inner {
+  display: grid;
+  gap: var(--space-lg);
+  padding-block: var(--section-y);
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+/* --------------------------------------------------------------- cabeçalho */
+
+.head {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+/* Especificidade de duas classes de propósito: a cor precisa vencer a do
+   primitivo MonoLabel sem depender da ordem em que os módulos entram no
+   bundle. */
+.head .index {
+  color: var(--ink-faint);
+}
+
+.title {
+  max-inline-size: 14ch;
+}
+
+.italic {
+  font-style: italic;
+  color: var(--accent);
+}
+
+/* ---------------------------------------------------------------- endereço */
+
+/* Só ritmo: a cor do rótulo vem da prop `muted` do primitivo. */
+.blockLabel {
+  margin-block-end: var(--space-3xs);
+}
+
+.addressBlock,
+.detailCol {
+  display: grid;
+  gap: var(--space-xs);
+  align-content: start;
+}
+
+.address {
+  font-style: normal;
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ ações */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+/* Dois botões da mesma família: no celular dividem a linha e crescem juntos,
+   o que garante alvo de toque largo sem virar bloco de app. */
+.actions .cta {
+  flex: 1 1 13rem;
+  justify-content: center;
+}
+
+/* =========================================================================
+   A ESTAMPA
+   O que aparece quando não há mapa interativo — e o que fica por baixo dele
+   quando há. Não é placeholder: é uma peça da identidade (selo, anéis
+   pontilhados de região, trajetória chegando) que sustenta a seção sozinha.
+   ========================================================================= */
+
+.stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* Sangra até as bordas da tela no celular: fotografia e mapas neste site
+     são edge-to-edge, nunca cartões com margem. */
+  margin-inline: calc(-1 * max(var(--gutter), var(--safe-left), var(--safe-right)));
+  aspect-ratio: 5 / 4;
+  background-color: var(--surface-sunken);
+  border-block: 1px solid var(--rule);
+}
+
+.plate {
+  position: absolute;
+  inset: 0;
+  /* Ancoragem única do ponto: anéis e marcador partem daqui, então mover o
+     ponto é mudar duas linhas, não seis regras. */
+  --anchor-x: 50%;
+  --anchor-y: 54%;
+}
+
+/* Malha de pontos — a leitura cartográfica sem desenhar um mapa que não
+   temos. Some nas bordas para não virar textura de fundo de formulário. */
+.plateGround {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at center, var(--rule-strong) 1px, transparent 1.3px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse at var(--anchor-x) var(--anchor-y), #000 24%, transparent 76%);
+  mask-image: radial-gradient(ellipse at var(--anchor-x) var(--anchor-y), #000 24%, transparent 76%);
+}
+
+/* Anéis pontilhados: no vocabulário do manual, a linha pontilhada também diz
+   "região". Giram muito devagar — é respiração, não indicador de progresso. */
+.rings {
+  position: absolute;
+  inset-inline-start: var(--anchor-x);
+  inset-block-start: var(--anchor-y);
+  inline-size: min(78%, 30rem);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  color: var(--trace);
+}
+
+.ring {
+  position: absolute;
+  border: var(--trace-width) dashed currentColor;
+  border-radius: var(--radius-pill);
+}
+
+.ring:nth-child(1) {
+  inset: 36%;
+  opacity: 0.85;
+  animation: drift 48s linear infinite;
+}
+
+.ring:nth-child(2) {
+  inset: 18%;
+  opacity: 0.55;
+  animation: drift 78s linear infinite reverse;
+}
+
+.ring:nth-child(3) {
+  inset: 0;
+  opacity: 0.32;
+  animation: drift 120s linear infinite;
+}
+
+@keyframes drift {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+.trace {
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+}
+
+/* ----------------------------------------------------------- o marcador */
+
+/* Mesma ancoragem do AdvancedMarkerElement: a base do conjunto pousa sobre a
+   coordenada, então selo, haste e ponto se empilham para cima. */
+.mark {
+  position: absolute;
+  inset-inline-start: var(--anchor-x);
+  inset-block-start: var(--anchor-y);
+  translate: -50% -100%;
+  display: grid;
+  justify-items: center;
+}
+
+.markSeal {
+  inline-size: clamp(58px, 11vw, 104px);
+  block-size: auto;
+  filter: drop-shadow(0 10px 22px color-mix(in oklab, var(--uva) 30%, transparent));
+}
+
+.markStem {
+  inline-size: var(--trace-width);
+  block-size: clamp(16px, 3vw, 26px);
+  background: linear-gradient(to bottom, var(--granada), color-mix(in oklab, var(--granada) 25%, transparent));
+}
+
+.markDot {
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: var(--radius-pill);
+  background-color: var(--granada);
+  box-shadow: 0 0 0 3px var(--surface);
+}
+
+/* --------------------------------------------------------- meta e ações */
+
+.plateMeta {
+  position: absolute;
+  inset-block-end: var(--space-md);
+  inset-inline-start: max(var(--gutter), var(--safe-left));
+  display: grid;
+  gap: 0.15rem;
+  color: var(--ink);
+}
+
+/* Botão de carga manual (celular). Fica sobre a estampa, no canto oposto à
+   meta, com alvo de toque cheio. */
+.loadMap {
+  position: absolute;
+  z-index: var(--z-raised);
+  inset-block-end: var(--space-md);
+  inset-inline-end: max(var(--gutter), var(--safe-right));
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--space-md);
+  color: var(--ink);
+  background-color: color-mix(in oklab, var(--surface-raised) 88%, transparent);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(6px);
+  transition:
+    background-color var(--dur-fast) var(--ease-brand),
+    border-color var(--dur-fast) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .loadMap:hover {
+    background-color: var(--ink);
+    border-color: var(--ink);
+    color: var(--surface);
+  }
+}
+
+/* Com o mapa real na tela, a estampa continua no DOM (é o plano B se o mapa
+   sumir), mas não precisa mais gastar CPU girando anéis atrás de tiles. */
+.stage[data-map='ready'] .ring {
+  animation: none;
+}
+
+/* =========================================================================
+   HORÁRIO E CONTATO
+   ========================================================================= */
+
+.details {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.hours,
+.contacts {
+  display: grid;
+  font-size: var(--text-sm);
+}
+
+.hoursRow,
+.contactLink {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-block: 0.7rem;
+  border-block-end: var(--trace-width) dashed var(--rule);
+}
+
+.hoursRow:last-child,
+.contacts li:last-child .contactLink {
+  border-block-end: 0;
+}
+
+.hoursRow dt {
+  color: var(--ink-muted);
+}
+
+.hoursRow dd {
+  color: var(--ink);
+}
+
+/* Alvo de toque de 44px sem inflar a linha: o padding acima já dá ~40px, o
+   min-height fecha a conta em WCAG 2.2 AA. */
+.contactLink {
+  min-height: 44px;
+  transition: color var(--dur-fast) var(--ease-brand);
+}
+
+.contactLabel {
+  flex: none;
+}
+
+.contactValue {
+  color: var(--ink);
+  text-align: end;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contactLink:hover .contactValue {
+    color: var(--accent);
+  }
+}
+
+/* =========================================================================
+   TELAS LARGAS — a divisão
+   ========================================================================= */
+
+@media (min-width: 768px) {
+  .details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stage {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+@media (min-width: 1024px) {
+  .inner {
+    grid-template-columns: minmax(21rem, 0.9fr) minmax(0, 1.1fr);
+    grid-template-rows: auto auto auto auto 1fr;
+    grid-template-areas:
+      'head    stage'
+      'address stage'
+      'actions stage'
+      'rota    stage'
+      'details stage';
+    column-gap: clamp(2.5rem, 5vw, 6rem);
+    row-gap: var(--space-lg);
+    /* O bloco de padding migra para a coluna de texto: assim a visualização
+       encosta no topo, na base e na borda direita da seção. */
+    padding-block: 0;
+    padding-inline: 0;
+    align-items: start;
+  }
+
+  .head {
+    grid-area: head;
+    padding-block-start: var(--section-y);
+  }
+
+  .addressBlock {
+    grid-area: address;
+  }
+
+  .actions {
+    grid-area: actions;
+  }
+
+  .details {
+    grid-area: details;
+    align-content: start;
+    padding-block-end: var(--section-y);
+  }
+
+  .head,
+  .addressBlock,
+  .actions,
+  .details {
+    padding-inline-start: max(var(--gutter), var(--safe-left));
+  }
+
+  .stage {
+    grid-area: stage;
+    align-self: stretch;
+    margin-inline: 0;
+    aspect-ratio: auto;
+    block-size: 100%;
+    min-block-size: min(80vh, 46rem);
+    border-block: 0;
+    border-inline-start: 1px solid var(--rule);
+  }
+
+  .actions .cta {
+    flex: 0 1 auto;
+  }
+}
+
+/* =========================================================================
+   MOVIMENTO REDUZIDO
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    animation: none;
+  }
+
+  .loadMap,
+  .contactLink {
+    transition: none;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   CARTA DE DESCOBERTA
+   Ocupa a coluna de texto, abaixo dos CTAs. No desktop entra na área própria
+   do grid, para não empurrar o mapa que sangra à direita.
+   ------------------------------------------------------------------------- */
+
+.rota {
+  padding-block-start: var(--space-lg);
+  border-block-start: 1px solid var(--rule);
+}
+
+@media (min-width: 1024px) {
+  .rota {
+    grid-area: rota;
+  }
+}

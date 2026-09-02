@@ -1,0 +1,52 @@
+.wrap {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-block-size: 100dvh;
+  background-color: var(--surface);
+  color: var(--ink);
+}
+
+.inner {
+  display: grid;
+  gap: var(--space-md);
+  align-content: center;
+  justify-items: start;
+  width: 100%;
+  max-width: var(--container-editorial);
+  margin-inline: auto;
+  padding: calc(var(--header-h) + var(--space-2xl)) max(var(--gutter), var(--safe-left)) var(--space-2xl);
+}
+
+.title em {
+  font-style: italic;
+  color: var(--bege);
+}
+
+.text {
+  max-width: 46ch;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  margin-block-start: var(--space-sm);
+}
+
+.secondary {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-muted);
+  padding-block: 0.75rem;
+  border-block-end: 1px solid currentColor;
+  transition: color var(--dur-fast) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .secondary:hover {
+    color: var(--ink);
+  }
+}

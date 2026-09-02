@@ -1,0 +1,177 @@
+.momento {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: end;
+  text-align: end;
+  font-family: var(--font-mono);
+  color: var(--bege);
+  /* A leitura pode cair sobre qualquer trecho da foto; a sombra sustenta o
+     texto sem precisar de uma caixa opaca por trás. */
+  text-shadow: 0 1px 3px color-mix(in oklab, var(--uva-900) 78%, transparent);
+}
+
+.chave {
+  color: var(--offwhite);
+}
+
+/* --------------------------------------------------------- linha do topo */
+
+.linhaTopo,
+.linhaData {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--mono-sm);
+  line-height: 1.4;
+}
+
+.aberto,
+.fechado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
+.aberto {
+  color: var(--offwhite);
+}
+
+.fechado {
+  color: var(--bege);
+}
+
+/* Ponto de estado. Pulsa só quando aberto — um indicador que pisca com a casa
+   fechada estaria dizendo o contrário do que o texto diz. */
+.ponto {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: var(--radius-pill);
+  background-color: currentColor;
+  flex: none;
+}
+
+.aberto .ponto {
+  background-color: #7fbf6a;
+  box-shadow: 0 0 0 0 color-mix(in oklab, #7fbf6a 70%, transparent);
+  animation: pulso 2.8s var(--ease-inout) infinite;
+}
+
+@keyframes pulso {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, #7fbf6a 60%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.separador {
+  inline-size: 10px;
+  block-size: 1px;
+  background-color: currentColor;
+  opacity: 0.45;
+  flex: none;
+}
+
+.ambiente {
+  color: var(--bege);
+  /* A descrição vem traduzida da API em caixa de frase. */
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+/* ------------------------------------------------------------ data e hora */
+
+.data {
+  color: var(--bege);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.hora {
+  color: var(--offwhite);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+.fuso {
+  color: var(--bege);
+  font-size: var(--mono-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+/* ------------------------------------------------------------- sugestão */
+
+.sugestao {
+  display: grid;
+  gap: 0.15rem;
+  justify-items: end;
+  margin-block-start: 0.45rem;
+  padding-block-start: 0.5rem;
+  border-block-start: 1px solid color-mix(in oklab, var(--bege) 32%, transparent);
+  /* Alvo de toque de 44px sem afastar a linha do bloco. */
+  min-block-size: 44px;
+  color: var(--offwhite);
+  transition: color var(--dur-fast) var(--ease-brand);
+}
+
+.motivo {
+  font-size: var(--mono-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--bege);
+}
+
+.item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+/* O nome do item é a única coisa em serifa aqui — é ele que a pessoa lê. */
+.nome {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  line-height: 1.15;
+  letter-spacing: var(--tracking-title);
+  border-block-end: 1px solid transparent;
+  transition: border-color var(--dur-fast) var(--ease-brand);
+}
+
+.preco {
+  font-size: var(--mono-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--bege);
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sugestao:hover .nome {
+    border-block-end-color: currentColor;
+  }
+}
+
+/*
+ * Abaixo de 768px o herói esconde os blocos laterais (ver Hero.module.css) e
+ * esta leitura vai junto — sobre a tipografia em escala máxima, três linhas de
+ * metadados viram ruído. A informação continua no rodapé e no cardápio.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  .aberto .ponto {
+    animation: none;
+  }
+
+  .sugestao,
+  .nome {
+    transition: none;
+  }
+}

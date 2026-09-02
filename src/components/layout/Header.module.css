@@ -1,0 +1,343 @@
+.header {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: var(--z-header);
+  padding-block-start: var(--safe-top);
+  /* O herói é full-bleed e escuro: o header entra por cima em bege, sem caixa.
+     A cor vem do próprio header, não da atmosfera, para não piscar no scroll. */
+  color: var(--bege);
+  transition:
+    background-color var(--dur-base) var(--ease-brand),
+    color var(--dur-base) var(--ease-brand),
+    backdrop-filter var(--dur-base) var(--ease-brand);
+}
+
+/* Fora do topo, ganha fundo translúcido e encolhe. */
+.condensed {
+  background-color: color-mix(in oklab, var(--uva) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  color: var(--offwhite);
+}
+
+/* Com o overlay aberto, o header some no fundo escuro dele. */
+.header[data-open] {
+  background-color: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: var(--offwhite);
+  z-index: calc(var(--z-overlay) + 1);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+  block-size: var(--header-h);
+  transition: block-size var(--dur-base) var(--ease-brand);
+}
+
+.condensed .bar {
+  block-size: calc(var(--header-h) - 0.75rem);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  /* O lettering tem ~14px de altura; o alvo precisa de 44 (WCAG 2.5.8).
+     min-block-size resolve sem empurrar a barra para baixo. */
+  min-block-size: 44px;
+  padding-inline-end: 0.75rem;
+  color: inherit;
+}
+
+/* ------------------------------------------------------- navegação inline */
+
+.inline {
+  display: none;
+  gap: clamp(1.25rem, 2.4vw, 2.5rem);
+}
+
+.inlineLink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  /* 44px de alvo; o sublinhado abaixo se posiciona pela caixa, não pelo texto. */
+  min-block-size: 44px;
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: inherit;
+}
+
+/* Sublinhado que cresce do início — gesto de "traçar", não de "sublinhar". */
+.inlineLink::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0.75rem;
+  block-size: 1px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .inlineLink:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+@media (min-width: 1024px) {
+  .inline {
+    display: flex;
+  }
+}
+
+/* ------------------------------------------------------------------ ações */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+
+.reserve {
+  display: none;
+  align-items: center;
+  min-block-size: 40px;
+  padding-inline: 1.25rem;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  transition:
+    background-color var(--dur-fast) var(--ease-brand),
+    color var(--dur-fast) var(--ease-brand);
+}
+
+@media (min-width: 640px) {
+  .reserve {
+    display: inline-flex;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .reserve:hover {
+    background-color: var(--bege);
+    color: var(--uva);
+    border-color: var(--bege);
+  }
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-block-size: 44px;
+  padding-inline-start: 0.5rem;
+  color: inherit;
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
+.toggleLabel {
+  /* Largura fixa: "Menu" e "Fechar" têm larguras diferentes e o ícone dançaria. */
+  min-inline-size: 3.75em;
+  text-align: end;
+}
+
+.toggleIcon {
+  display: grid;
+  gap: 5px;
+  inline-size: 1.5rem;
+}
+
+.toggleIcon span {
+  display: block;
+  block-size: 1px;
+  background-color: currentColor;
+  transition: transform var(--dur-fast) var(--ease-brand);
+}
+
+.header[data-open] .toggleIcon span:first-child {
+  transform: translateY(3px) rotate(45deg);
+}
+
+.header[data-open] .toggleIcon span:last-child {
+  transform: translateY(-3px) rotate(-45deg);
+}
+
+/* ---------------------------------------------------------------- overlay */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background-color: var(--surface);
+  color: var(--ink);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-block: calc(var(--header-h) + var(--safe-top) + var(--space-lg)) calc(var(--space-xl) + var(--safe-bottom));
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+.overlayInner {
+  display: grid;
+  gap: var(--space-xl);
+  max-inline-size: var(--container-max);
+  margin-inline: auto;
+  min-block-size: 100%;
+  align-content: space-between;
+}
+
+@media (min-width: 1024px) {
+  .overlayInner {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: var(--space-2xl);
+    align-items: end;
+  }
+}
+
+/* ------------------------------------------------------------------ índice */
+
+.indexItem + .indexItem {
+  border-block-start: 1px solid var(--rule);
+}
+
+/* A máscara é o que dá o gesto de "subir por baixo da linha". */
+.rowMask {
+  display: block;
+  overflow: hidden;
+}
+
+.indexLink {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.875rem, 2vw, 2rem);
+  padding-block: clamp(0.7rem, 1.6vw, 1.15rem);
+  color: var(--ink);
+  transition: color var(--dur-fast) var(--ease-brand);
+}
+
+.indexNumber {
+  flex: none;
+  color: var(--ink-faint);
+  /* Alinha o número pela primeira letra do rótulo, como num índice impresso. */
+  transform: translateY(-0.35em);
+  transition: color var(--dur-fast) var(--ease-brand);
+}
+
+.indexLabel {
+  font-family: var(--font-serif);
+  /* São sete entradas: a escala precisa responder à ALTURA, não só à largura,
+     senão num notebook de 900px o índice transborda e "Localização" fica fora
+     da tela. O min() faz a dimensão mais apertada mandar. */
+  font-size: clamp(1.9rem, min(7vw, 6.4vh), 4.75rem);
+  line-height: 0.98;
+  letter-spacing: var(--tracking-display);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .indexLink:hover {
+    color: var(--accent);
+  }
+
+  .indexLink:hover .indexNumber {
+    color: var(--accent);
+  }
+}
+
+/* ------------------------------------------------------------------ aside */
+
+.aside {
+  display: grid;
+  gap: var(--space-lg);
+  align-content: end;
+}
+
+.asideCopy {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 3.2vw, 2.5rem);
+  line-height: 1.06;
+  letter-spacing: var(--tracking-display);
+  color: var(--accent);
+}
+
+.asideCopy em {
+  font-style: italic;
+}
+
+.asideContacts {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.asideLink {
+  display: grid;
+  gap: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--ink);
+  padding-block: 0.35rem;
+  transition: color var(--dur-fast) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .asideLink:hover {
+    color: var(--accent);
+  }
+}
+
+.asideReserve {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 52px;
+  padding-inline: var(--space-lg);
+  border-radius: var(--radius-pill);
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  justify-self: start;
+  transition:
+    background-color var(--dur-fast) var(--ease-brand),
+    color var(--dur-fast) var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .asideReserve:hover {
+    background-color: var(--offwhite);
+    color: var(--uva);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .bar,
+  .inlineLink::after,
+  .toggleIcon span,
+  .indexLink,
+  .reserve {
+    transition: none;
+  }
+}
