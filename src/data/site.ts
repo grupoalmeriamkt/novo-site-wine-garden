@@ -26,6 +26,44 @@ export type SiteContact = {
   verified: boolean
 }
 
+/**
+ * A URL canônica do site.
+ *
+ * `??` não bastava: uma variável DEFINIDA E VAZIA no painel da Vercel passa
+ * pelo `??` e chega como string vazia até `new URL()`, que morre com
+ * ERR_INVALID_URL na coleta de páginas — o build inteiro cai por causa de um
+ * campo em branco. Por isso a cascata testa conteúdo, não existência.
+ *
+ * A ordem reflete a confiança: o domínio configurado à mão vence; depois o
+ * domínio de produção que a Vercel injeta; depois a URL do deploy atual (que
+ * muda a cada preview, mas é melhor que nada nos previews); e por fim o
+ * localhost do desenvolvimento.
+ */
+function resolverUrlDoSite(): string {
+  const candidatos = [
+    process.env.NEXT_PUBLIC_SITE_URL,
+    // Injetadas pela Vercel; vêm sem protocolo.
+    process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    process.env.NEXT_PUBLIC_VERCEL_URL,
+    process.env.VERCEL_URL,
+  ]
+
+  for (const bruto of candidatos) {
+    const valor = bruto?.trim()
+    if (!valor) continue
+    const comProtocolo = /^https?:\/\//.test(valor) ? valor : `https://${valor}`
+    try {
+      // Normaliza e derruba lixo: `new URL` aqui é a validação, não um adorno.
+      return new URL(comProtocolo).origin
+    } catch {
+      continue
+    }
+  }
+
+  return 'http://localhost:3000'
+}
+
 export const SITE = {
   name: 'Wine Garden',
   legalName: 'Wine Garden Comércio de Bebidas e Organização de Eventos Ltda',
@@ -34,10 +72,11 @@ export const SITE = {
   description:
     'Wine bar e restaurante no Pontão do Lago Sul, em Brasília. Uma carta que atravessa oito países produtores, cozinha contemporânea e um jardim para novas conexões.',
   /**
-   * Defina NEXT_PUBLIC_SITE_URL no deploy. O fallback existe só para o build
-   * local não quebrar as URLs absolutas de Open Graph e sitemap.
+   * Defina NEXT_PUBLIC_SITE_URL no deploy com o domínio final. Sem ela, a
+   * cascata acima usa o domínio que a Vercel injeta — o site sobe e as URLs
+   * absolutas de Open Graph, canonical e sitemap continuam coerentes.
    */
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://winegarden.com.br',
+  url: resolverUrlDoSite(),
   locale: 'pt-BR',
 } as const
 

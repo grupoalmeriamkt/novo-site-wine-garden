@@ -42,3 +42,7 @@ next-env.d.ts
 # repositório e os originais (1,8 GB em /content-1 e /content-2) não estão
 # aqui — sem estes arquivos versionados o site sobe em produção sem nenhuma
 # fotografia. Nenhum passa de 1 MB.
+# Acrescentado por `vercel link`. Mantido, mas com a exceção: o .env.example é
+# o template documentado das variáveis e precisa estar no repositório.
+.env*
+!.env.example

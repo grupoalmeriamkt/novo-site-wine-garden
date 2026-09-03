@@ -3,6 +3,7 @@ import { describe, it } from 'node:test'
 import { MENU_ITEMS } from '../src/data/generated/menu.ts'
 import { WINES } from '../src/data/generated/wines.ts'
 import { FAQ } from '../src/data/faq.ts'
+import { SITE } from '../src/data/site.ts'
 import {
   faqJsonLd,
   harmonizacoesJsonLd,
@@ -23,6 +24,17 @@ import {
 type Json = Record<string, unknown>
 
 describe('dado estruturado', () => {
+  /*
+   * Esta foi a causa de uma quebra de deploy: `NEXT_PUBLIC_SITE_URL` existia no
+   * painel mas estava VAZIA, o `??` deixou passar, e `new URL('')` derrubou a
+   * coleta de páginas do build inteiro. O teste guarda a invariante que
+   * importa — a URL do site é sempre absoluta e construível.
+   */
+  it('a URL do site é sempre uma URL absoluta válida', () => {
+    assert.doesNotThrow(() => new URL(SITE.url))
+    assert.match(SITE.url, /^https?:\/\/[^/]+$/, 'sem barra final e com protocolo')
+  })
+
   it('não declara avaliação que ninguém confirmou', () => {
     const r = restaurantJsonLd()
     assert.equal(r.aggregateRating, undefined)

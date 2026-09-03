@@ -1,8 +1,16 @@
+# Fontes de asset bruto: só os scripts de `npm run assets:*` as consomem, e
+# esses rodam na máquina de quem edita, nunca no deploy.
 content-1
 content-2
 Logos-wine-garden
 elementos-wine
-tipografias
 *.pdf
 e2e
 tests
+
+# ATENÇÃO: /tipografias NÃO entra nesta lista.
+#
+# As capas Open Graph são geradas no build por src/lib/og.tsx, que lê o TTF do
+# disco com process.cwd() — Satori precisa dos bytes da fonte, não do CSS. Sem
+# a pasta, as quatro rotas de opengraph-image falham com ENOENT e derrubam o
+# build. São 520 KB.
