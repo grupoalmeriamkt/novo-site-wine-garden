@@ -151,23 +151,34 @@ export const RESERVATION = {
 } as const
 
 /**
- * Eventos privados. Enquanto a casa não fornecer endpoint ou formulário
- * próprio, o CTA cai no WhatsApp de eventos publicado no Linktree oficial.
+ * Eventos privados — o canal comercial da casa.
+ *
+ * Número informado pelo cliente em 03/09/2026, e é PARA ONDE VAI O FORMULÁRIO:
+ * é a linha do comercial de eventos, distinta do WhatsApp de reservas. Trocar
+ * este valor redireciona todos os leads de evento; não alterar sem confirmação.
  */
 export const EVENTS_CONTACT = {
-  whatsapp: 'https://wa.me/5561998117063',
-  label: '(61) 99811-7063',
+  whatsapp: 'https://wa.me/5561993378338',
+  label: '(61) 99337-8338',
   verified: true,
 } as const
 
+/**
+ * A navegação.
+ *
+ * Cinco entradas, e a poda foi deliberada: Experiências e O Garden saíram a
+ * pedido da casa. Um menu curto é o que faz cada item ser lido — a lista de
+ * sete diluía justamente o que importa, que é a carta e a mesa.
+ *
+ * `Header` mostra as três primeiras na barra fixa; o menu completo e o rodapé
+ * mostram todas.
+ */
 export const NAV_ITEMS = [
   { id: '01', label: 'Cardápio', href: '/cardapio' },
   { id: '02', label: 'Vinhos', href: '/vinhos' },
   { id: '03', label: 'Wine Match', href: '/wine-match' },
-  { id: '04', label: 'Experiências', href: '/#experiencias' },
-  { id: '05', label: 'O Garden', href: '/#garden' },
-  { id: '06', label: 'Eventos', href: '/#eventos' },
-  { id: '07', label: 'Localização', href: '/#localizacao' },
+  { id: '04', label: 'Eventos', href: '/#eventos' },
+  { id: '05', label: 'Localização', href: '/#localizacao' },
 ] as const
 
 /**

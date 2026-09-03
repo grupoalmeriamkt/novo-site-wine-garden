@@ -5,7 +5,8 @@ import { WINES } from '../src/data/generated/wines.ts'
 import { MENU_ITEMS } from '../src/data/generated/menu.ts'
 import { COUNTRIES, countrySlugFor, OTHER_ORIGINS } from '../src/data/countries.ts'
 import { cartSummary, filterWines, EMPTY_FILTERS, countryStats } from '../src/lib/wines.ts'
-import { matchWines, dishesForMatch } from '../src/lib/wine-match.ts'
+import { matchWines } from '../src/lib/wine-match.ts'
+import { categoriasDaCozinha } from '../src/lib/cozinha.ts'
 import { DISH_PHOTOS } from '../src/data/photos.ts'
 import { PHOTO_BY_ID } from '../src/data/generated/photo-manifest.ts'
 
@@ -159,7 +160,7 @@ describe('wine match', () => {
     for (const moment of momentos) {
       for (const style of estilos) {
         for (const budget of orcamentos) {
-          const { results } = matchWines({ moment, style, dish: null, budget })
+          const { results } = matchWines({ moment, style, budget })
           const rotulo = `${moment}/${style}/${budget}`
           assert.ok(results.length >= 2, `${rotulo} devolveu ${results.length}`)
           assert.ok(results.length <= 4, `${rotulo} devolveu ${results.length}`)
@@ -172,29 +173,30 @@ describe('wine match', () => {
     }
   })
 
-  it('a harmonização do prato aparece na justificativa', () => {
+  it('toda recomendação vem com pelo menos uma justificativa', () => {
     const { results } = matchWines({
       moment: 'jantar',
       style: 'intenso',
-      dish: 'file-au-poivre',
       budget: '150-350',
     })
     const top = results[0]
     assert.ok(top)
-    assert.ok(
-      top.reasons.some((r) => r.includes('cardápio harmoniza')),
-      'a recomendação principal deveria citar a harmonização oficial',
-    )
+    // A regra do módulo: o que não dá para explicar não pontua. Um resultado
+    // sem justificativa significa que algo entrou no ranking sem motivo.
+    assert.ok(top.reasons.length > 0, 'a recomendação principal precisa dizer por quê')
+    for (const r of results) assert.ok(r.reasons.length > 0, `${r.wine.name} sem justificativa`)
   })
 
-  it('só oferece pratos que a casa realmente harmonizou', () => {
-    const pratos = dishesForMatch()
-    assert.ok(pratos.length > 0)
-    assert.ok(pratos.every((p) => p.pairings.length > 0))
+  it('toda categoria da cozinha declara ao menos uma harmonização', () => {
+    const categorias = categoriasDaCozinha()
+    assert.ok(categorias.length > 0)
+    for (const c of categorias) {
+      assert.ok(c.vinhos.length > 0, `${c.nome} sem harmonização declarada`)
+    }
   })
 
   it('resultado é determinístico: mesma entrada, mesma saída', () => {
-    const entrada = { moment: 'encontro', style: 'aromatico', dish: null, budget: '60-150' } as const
+    const entrada = { moment: 'encontro', style: 'aromatico', budget: '60-150' } as const
     const a = matchWines(entrada).results.map((r) => r.wine.id)
     const b = matchWines(entrada).results.map((r) => r.wine.id)
     assert.deepEqual(a, b)
@@ -233,7 +235,7 @@ describe('sommelier', () => {
     assert.equal(hasSommelierProvider(), false)
 
     const resposta = await askSommelier(
-      { answers: { moment: 'jantar', style: 'intenso', dish: null, budget: '150-350' } },
+      { answers: { moment: 'jantar', style: 'intenso', budget: '150-350' } },
       { wines: WINES, limit: 3 },
     )
     assert.equal(resposta.source, 'deterministico')
@@ -251,7 +253,7 @@ describe('sommelier', () => {
     })
 
     const resposta = await askSommelier(
-      { answers: { moment: 'brinde', style: 'leve-fresco', dish: null, budget: 'sem-limite' } },
+      { answers: { moment: 'brinde', style: 'leve-fresco', budget: 'sem-limite' } },
       { wines: WINES, limit: 3 },
     )
 

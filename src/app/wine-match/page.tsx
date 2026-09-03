@@ -3,8 +3,8 @@ import { WineMatch } from '@/components/wine/WineMatch'
 import { WINES } from '@/data/generated/wines'
 import { SITE } from '@/data/site'
 import { Harmonizacoes } from '@/components/sections/Harmonizacoes'
+import { categoriasDaCozinha } from '@/lib/cozinha'
 import { breadcrumbJsonLd, harmonizacoesJsonLd } from '@/lib/seo'
-import { dishesForMatch } from '@/lib/wine-match'
 
 /**
  * Rota do Wine Match.
@@ -14,13 +14,17 @@ import { dishesForMatch } from '@/lib/wine-match'
  * porque lê a etapa de `useSearchParams` — assim esta página continua
  * pré-renderizada e o palco aparece antes de qualquer JS de fluxo.
  *
+ * Abaixo do questionário, `<Harmonizacoes>` entrega em HTML servido a mesma
+ * ponte cozinha–carta que o fluxo interativo usa: quem chega pela busca lê a
+ * resposta sem precisar responder nada.
+ *
  * Os números da descrição são contados dos dados na hora do build, não
  * digitados: se a carta mudar, o texto acompanha.
  */
 
-const DISH_COUNT = dishesForMatch().length
+const COZINHA_COUNT = categoriasDaCozinha().length
 
-const DESCRIPTION = `Quatro perguntas e a carta responde: de 2 a 4 rótulos entre os ${WINES.length} do Wine Garden, com o motivo de cada escolha e a harmonização que a casa escreveu para ${DISH_COUNT} pratos.`
+const DESCRIPTION = `Três perguntas e a carta responde: de 2 a 4 rótulos entre os ${WINES.length} do Wine Garden, com o motivo de cada escolha e a harmonização que a casa indica para as ${COZINHA_COUNT} categorias da cozinha.`
 
 export const metadata: Metadata = {
   title: 'Wine Match',

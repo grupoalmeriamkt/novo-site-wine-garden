@@ -7,45 +7,47 @@ import { expect, test } from '@playwright/test'
  * requisito explícito, e a regra de conteúdo de que nada é inventado.
  */
 
+/*
+ * O CARDÁPIO É UM RESUMO, não uma lista.
+ *
+ * A casa troca os pratos com frequência, então a página deixou de publicar
+ * itens e preços: ficaram as categorias, a harmonização de cada uma e o link
+ * para o cardápio digital, que é onde os valores vigentes vivem. Estes testes
+ * guardam essa decisão — inclusive a parte de NÃO mostrar preço de comida,
+ * que é o que volta a envelhecer se alguém reintroduzir a lista.
+ */
 test.describe('Cardápio', () => {
-  test('abre com as categorias reais e preços em pt-BR', async ({ page }) => {
+  test('abre com as categorias reais da cozinha', async ({ page }) => {
     await page.goto('/cardapio')
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
     // Categorias que existem de fato no cardápio oficial.
-    await expect(page.getByText('Tábuas e Antipasti').first()).toBeVisible()
-    await expect(page.getByText('Principais').first()).toBeVisible()
-
-    // Preço no formato brasileiro, com vírgula decimal.
-    await expect(page.getByText(/R\$\s?\d{1,3}(\.\d{3})*,\d{2}/).first()).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Tábuas e Antipasti', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Principais', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Sobremesas', exact: true })).toBeVisible()
   })
 
-  test('a busca filtra e informa quando não há resultado', async ({ page }) => {
+  test('cada categoria mostra a harmonização que a casa declara', async ({ page }) => {
     await page.goto('/cardapio')
-    const busca = page.getByRole('searchbox').or(page.getByRole('textbox')).first()
 
-    await busca.fill('burrata')
-    await page.waitForTimeout(400)
-    await expect(page.getByText(/burrata/i).first()).toBeVisible()
-
-    await busca.fill('zzzzzznaoexiste')
-    await page.waitForTimeout(400)
-    await expect(page.getByText(/nenhum|não encontr/i).first()).toBeVisible()
+    // A ponte cozinha–carta: o texto e o link para a seção da carta.
+    await expect(page.getByText(/harmoniza com/i).first()).toBeVisible()
+    const paraCarta = page.getByRole('link', { name: 'Tinto Médio Corpo' }).first()
+    await expect(paraCarta).toBeVisible()
+    await expect(paraCarta).toHaveAttribute('href', /\/vinhos\?categoria=/)
   })
 
-  test('deep link de categoria funciona e o voltar do navegador respeita', async ({ page }) => {
-    await page.goto('/cardapio?categoria=principais')
-    await page.waitForLoadState('networkidle')
-    await expect(page.getByText(/salmão garden/i).first()).toBeVisible()
-  })
-
-  test('a navegação de categoria é sticky no mobile', async ({ page, isMobile }) => {
-    test.skip(!isMobile, 'comportamento específico de mobile')
+  test('não publica preço de comida, e manda ao cardápio digital', async ({ page }) => {
     await page.goto('/cardapio')
-    await page.evaluate(() => window.scrollTo(0, 1400))
-    await page.waitForTimeout(400)
-    const nav = page.locator('[data-menu-nav]').first()
-    if ((await nav.count()) > 0) await expect(nav).toBeInViewport()
+
+    const texto = (await page.locator('body').innerText()) ?? ''
+    expect(texto, 'a página não deve trazer valores de pratos').not.toMatch(
+      /R\$\s?\d{1,3}(\.\d{3})*,\d{2}/,
+    )
+
+    const digital = page.getByRole('link', { name: /cardápio digital/i }).first()
+    await expect(digital).toBeVisible()
+    await expect(digital).toHaveAttribute('href', /menu\.getin\.app/)
   })
 })
 
@@ -119,7 +121,9 @@ test.describe('Wine Match', () => {
     await page.goto('/wine-match')
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
-    // Quatro etapas: momento, estilo, prato, orçamento.
+    // Três etapas: momento, estilo, orçamento. A de prato saiu junto com o
+    // cardápio — recomendar a partir de um prato que pode ter saído da cozinha
+    // é decidir sobre uma premissa que ninguém garantiu.
     const escolher = async (padrao: RegExp) => {
       const opcao = page.getByRole('button', { name: padrao }).first()
       await opcao.waitFor({ state: 'visible', timeout: 8000 })
@@ -129,7 +133,6 @@ test.describe('Wine Match', () => {
 
     await escolher(/jantar/i)
     await escolher(/intenso/i)
-    await escolher(/só o vinho|apenas o vinho|pular/i)
     await escolher(/R\$|sem limite/i)
 
     await page.waitForTimeout(900)

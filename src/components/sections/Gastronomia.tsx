@@ -8,7 +8,7 @@ import { EditorialHeading, MonoLabel, Prose } from '@/components/primitives/Typo
 import { MENU_ITEMS } from '@/data/generated/menu'
 import { GASTRONOMY } from '@/data/photos'
 import { CATEGORY_SLUG, PAIRING_TO_CATEGORY } from '@/lib/wine-vocab'
-import type { MenuItem } from '@/types/content'
+import { categoriasDaCozinha } from '@/lib/cozinha'
 import styles from './Gastronomia.module.css'
 
 /* ========================================================================
@@ -32,7 +32,6 @@ function pairingHref(pairing: string): string | null {
 }
 
 /** Uma instância só: `Intl.NumberFormat` por item renderizado é caro à toa. */
-const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
 /* ========================================================================
    DIREÇÃO DE ARTE
@@ -147,23 +146,30 @@ const PLATES: readonly Plate[] = [
 
 const MENU_BY_ID = new Map(MENU_ITEMS.map((item) => [item.id, item]))
 
-type Movement = Plate & { dish: MenuItem }
-
 /**
- * A sequência final, cruzada com o cardápio gerado. Um prato só sobrevive se
- * ainda existir na carta E declarar harmonização: a seção inteira é sobre essa
- * ponte, e sem `pairings` não há ponte nenhuma para mostrar.
+ * O que a foto MOSTRA continua sendo um prato; o que o texto DIZ passou a ser
+ * a categoria.
+ *
+ * O prato de cada quadro serve agora só para descobrir a que categoria a
+ * fotografia pertence — e é a categoria, com sua harmonização, que aparece na
+ * tela. Nome, preço e descrição saíram junto com o cardápio do site: mudam
+ * toda semana, e a home era o lugar onde envelheciam mais à vista.
  */
+type Movement = Plate & { categoria: string; vinhos: readonly string[] }
+
+const COZINHA = categoriasDaCozinha()
+const COZINHA_BY_NOME = new Map(COZINHA.map((c) => [c.nome, c]))
+
 const MOVEMENTS: readonly Movement[] = PLATES.flatMap((plate) => {
   const dish = MENU_BY_ID.get(plate.dishId)
-  if (!dish || dish.pairings.length === 0) return []
-  return [{ ...plate, dish }]
+  const categoria = dish ? COZINHA_BY_NOME.get(dish.category) : undefined
+  if (!categoria || categoria.vinhos.length === 0) return []
+  return [{ ...plate, categoria: categoria.nome, vinhos: categoria.vinhos }]
 })
 
 /** Números lidos do próprio cardápio — nunca escritos à mão. */
-const KITCHEN = MENU_ITEMS.filter((item) => item.section === 'Cardápio')
-const DISH_COUNT = KITCHEN.length
-const PAIRED_COUNT = KITCHEN.filter((item) => item.pairings.length > 0).length
+const CATEGORIA_COUNT = COZINHA.length
+const COM_HARMONIZACAO = COZINHA.filter((c) => c.vinhos.length > 0).length
 
 /**
  * O índice compacto que segue os três destaques.
@@ -174,24 +180,15 @@ const PAIRED_COUNT = KITCHEN.filter((item) => item.pairings.length > 0).length
  * repetição e adia a decisão de clicar.
  *
  * A troca: três destaques com foto e, no lugar dos outros três, uma lista
- * tipográfica sem imagem. Ela cabe em meia tela, mostra MAIS pratos do que a
- * sequência longa mostrava, e mantém intacta a informação que sustenta a seção
- * — a harmonização que a casa declara.
+ * tipográfica sem imagem. Ela cabe em meia tela e mantém intacta a informação
+ * que sustenta a seção — a harmonização que a casa declara.
  *
- * A seleção é derivada, não escrita: pega os próximos pratos com harmonização
- * que não estão nos destaques, na ordem do cardápio. Se a carta mudar, a lista
- * acompanha.
+ * A seleção é derivada, não escrita: as categorias da cozinha que os três
+ * destaques não cobriram, na ordem do cardápio.
  */
-const FEATURED_IDS = new Set(MOVEMENTS.map((movement) => movement.dish.id))
+const DESTACADAS = new Set(MOVEMENTS.map((movement) => movement.categoria))
 
-const INDEX_LIMIT = 6
-
-const INDEXED = KITCHEN.filter(
-  (item) => item.pairings.length > 0 && !FEATURED_IDS.has(item.id),
-).slice(0, INDEX_LIMIT)
-
-/** O que sobra depois dos destaques E do índice — o gancho para o cardápio. */
-const REMAINING_COUNT = DISH_COUNT - MOVEMENTS.length - INDEXED.length
+const INDEXED = COZINHA.filter((c) => c.vinhos.length > 0 && !DESTACADAS.has(c.nome))
 
 /* ========================================================================
    SEÇÃO
@@ -236,11 +233,11 @@ export function Gastronomia() {
                 cardápio na carga do módulo. */}
             <p className={styles.facts}>
               <MonoLabel size="xs" numeric>
-                {DISH_COUNT} pratos
+                {CATEGORIA_COUNT} categorias
               </MonoLabel>
               <span className={styles.factsRule} aria-hidden="true" />
               <MonoLabel size="xs" numeric muted>
-                {PAIRED_COUNT} com harmonização declarada
+                {COM_HARMONIZACAO} com harmonização declarada
               </MonoLabel>
             </p>
           </div>
@@ -330,10 +327,8 @@ export function Gastronomia() {
 
         <ol className={styles.movements}>
           {MOVEMENTS.map((movement, index) => {
-            const { dish } = movement
-
             return (
-              <li key={dish.id} className={styles.movement}>
+              <li key={movement.categoria} className={styles.movement}>
                 <Reveal
                   photoId={movement.photoId}
                   alt={movement.alt}
@@ -351,29 +346,16 @@ export function Gastronomia() {
                   </MonoLabel>
 
                   <EditorialHeading as="h3" size="3" className={styles.dishName}>
-                    {dish.name}
+                    {movement.categoria}
                   </EditorialHeading>
-
-                  {/* A guia pontilhada até o preço é a linha da marca em escala
-                      de interface — e é como um cardápio impresso alinha valor. */}
-                  <p className={styles.priceRow}>
-                    <span className={styles.leader} aria-hidden="true" />
-                    <MonoLabel size="md" numeric className={styles.price}>
-                      {BRL.format(dish.price)}
-                    </MonoLabel>
-                  </p>
-
-                  <Prose size="sm" className={styles.description}>
-                    {dish.description}
-                  </Prose>
 
                   <div className={styles.pairing}>
                     <MonoLabel size="xs" className={styles.pairingLabel}>
                       Harmoniza com
                     </MonoLabel>
 
-                    <ul className={styles.pairingList} aria-label={`Harmoniza com — ${dish.name}`}>
-                      {dish.pairings.map((pairing) => {
+                    <ul className={styles.pairingList} aria-label={`Harmoniza com — ${movement.categoria}`}>
+                      {movement.vinhos.map((pairing) => {
                         const href = pairingHref(pairing)
 
                         return (
@@ -401,23 +383,23 @@ export function Gastronomia() {
         </ol>
 
         {/*
-          O índice: mesma informação dos destaques — nome, preço, harmonização —
-          em uma linha por prato. Sem foto de propósito: é o contraponto de
-          ritmo depois de três quadros grandes, e é o que faz a seção terminar
-          em meia tela em vez de mais três.
+          O índice: mesma informação dos destaques — categoria e harmonização —
+          em uma linha cada. Sem foto de propósito: é o contraponto de ritmo
+          depois de três quadros grandes, e é o que faz a seção terminar em
+          meia tela em vez de mais três.
         */}
         <ol className={styles.index}>
-          {INDEXED.map((dish, position) => (
-            <li key={dish.id} className={styles.indexRow}>
+          {INDEXED.map((categoria, position) => (
+            <li key={categoria.nome} className={styles.indexRow}>
               <MonoLabel size="xs" numeric className={styles.indexNumber}>
                 {String(MOVEMENTS.length + position + 1).padStart(2, '0')}
               </MonoLabel>
 
               <div className={styles.indexMain}>
-                <h3 className={styles.indexName}>{dish.name}</h3>
+                <h3 className={styles.indexName}>{categoria.nome}</h3>
 
-                <ul className={styles.indexPairings} aria-label={`Harmoniza com — ${dish.name}`}>
-                  {dish.pairings.map((pairing) => {
+                <ul className={styles.indexPairings} aria-label={`Harmoniza com — ${categoria.nome}`}>
+                  {categoria.vinhos.map((pairing) => {
                     const href = pairingHref(pairing)
                     return (
                       <li key={pairing}>
@@ -437,20 +419,16 @@ export function Gastronomia() {
               </div>
 
               <span className={styles.indexLeader} aria-hidden="true" />
-
-              <MonoLabel size="md" numeric className={styles.indexPrice}>
-                {BRL.format(dish.price)}
-              </MonoLabel>
             </li>
           ))}
         </ol>
 
         <div className={styles.closing}>
-          <MonoLabel size="xs" numeric className={styles.closingNote}>
-            E mais {REMAINING_COUNT} pratos no cardápio
+          <MonoLabel size="xs" muted className={styles.closingNote}>
+            Os pratos e os valores de hoje, no cardápio digital
           </MonoLabel>
           <Cta href="/cardapio" size="lg">
-            Ver o cardápio completo
+            Conhecer a cozinha
           </Cta>
         </div>
       </Section>

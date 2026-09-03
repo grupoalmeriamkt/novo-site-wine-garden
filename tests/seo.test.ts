@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { MENU_ITEMS } from '../src/data/generated/menu.ts'
 import { WINES } from '../src/data/generated/wines.ts'
 import { FAQ } from '../src/data/faq.ts'
 import { SITE } from '../src/data/site.ts'
 import {
+  cartaJsonLd,
   faqJsonLd,
   harmonizacoesJsonLd,
-  menuJsonLd,
   restaurantJsonLd,
   wineOriginsJsonLd,
 } from '../src/lib/seo.ts'
+import { categoriasDaCozinha } from '../src/lib/cozinha.ts'
 
 /**
  * Procedência do dado estruturado.
@@ -42,10 +42,15 @@ describe('dado estruturado', () => {
     assert.equal(r.ratingValue, undefined)
   })
 
-  it('a faixa de preço sai dos preços dos pratos', () => {
-    const precos = MENU_ITEMS.filter((i) => i.section === 'Cardápio').map((i) => i.price)
-    const esperado = `R$ ${Math.min(...precos)}–${Math.max(...precos)}`
-    assert.equal(restaurantJsonLd().priceRange, esperado)
+  /*
+   * O cardápio saiu do site porque a casa o troca com frequência. Preço em
+   * dado estruturado é exibido pelo Google como fato — publicar o de comida
+   * seria publicar algo que envelhece entre uma visita e outra.
+   */
+  it('não publica preço de comida', () => {
+    assert.equal(restaurantJsonLd().priceRange, undefined)
+    // hasMenu aponta para a página, não para um Menu com itens e valores.
+    assert.equal(typeof restaurantJsonLd().hasMenu, 'string')
   })
 
   it('as coordenadas e o endereço vêm de site.ts, não do JSON-LD', () => {
@@ -85,28 +90,33 @@ describe('dado estruturado', () => {
   it('toda harmonização publicada existe no cardápio', () => {
     const lista = harmonizacoesJsonLd().itemListElement as Json[]
     assert.ok(lista.length > 0)
-    const nomes = new Set(MENU_ITEMS.map((i) => i.name))
+    // Agora são CATEGORIAS da cozinha, não pratos: é o que sobrevive à
+    // próxima troca de cardápio.
+    const categorias = new Set(categoriasDaCozinha().map((c) => c.nome.toLowerCase()))
     for (const item of lista) {
-      const pratos = String(item.description).replace(/^Harmoniza com /, '').replace(/\.$/, '')
-      for (const prato of pratos.split(', ')) {
-        assert.ok(nomes.has(prato), `prato inexistente no cardápio: ${prato}`)
+      const texto = String(item.description)
+        .replace(/^Indicado no cardápio para /, '')
+        .replace(/\.$/, '')
+      for (const nome of texto.split(', ')) {
+        assert.ok(categorias.has(nome), `categoria inexistente na cozinha: ${nome}`)
       }
     }
   })
 
-  it('todo preço do Menu bate com o cardápio oficial', () => {
-    const secoes = menuJsonLd().hasMenuSection as Json[]
-    const oficial = new Map(MENU_ITEMS.map((i) => [i.name, i.price]))
+  it('todo preço da carta bate com o documento oficial', () => {
+    const secoes = cartaJsonLd().hasMenuSection as Json[]
+    const oficial = new Map(WINES.map((w) => [`${w.name}|${w.price}`, w]))
     let conferidos = 0
     for (const secao of secoes) {
       for (const item of (secao.hasMenuItem as Json[]) ?? []) {
-        const preco = (item.offers as Json).price
-        const esperado = oficial.get(String(item.name))
-        if (esperado === undefined) continue // seção de vinhos, conferida em dados.test
-        assert.equal(preco, esperado.toFixed(2), `preço divergente em ${item.name}`)
+        const preco = Number((item.offers as Json).price)
+        assert.ok(
+          oficial.has(`${item.name}|${preco}`),
+          `rótulo ou preço divergente: ${item.name} a ${preco}`,
+        )
         conferidos += 1
       }
     }
-    assert.equal(conferidos, MENU_ITEMS.length)
+    assert.equal(conferidos, WINES.length)
   })
 })

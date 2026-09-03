@@ -1,215 +1,220 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
 import Link from 'next/link'
-import { MENU_ITEMS } from '@/data/generated/menu'
-import { CELLAR } from '@/data/photos'
-import { BRAND_COPY, SITE } from '@/data/site'
+import { GASTRONOMY, GARDEN } from '@/data/photos'
+import { RESERVATION, SITE } from '@/data/site'
 import { cartSummary } from '@/lib/wines'
-import { breadcrumbJsonLd, menuJsonLd } from '@/lib/seo'
+import { categoriasDaCozinha, secoesDeBebida } from '@/lib/cozinha'
+import { CATEGORY_SLUG } from '@/lib/wine-vocab'
+import { breadcrumbJsonLd } from '@/lib/seo'
 import { Section } from '@/components/primitives/Section'
 import { EditorialHeading, MonoLabel, Prose } from '@/components/primitives/Typography'
 import { Cta } from '@/components/primitives/Cta'
 import { Reveal } from '@/components/primitives/Reveal'
-import { Trace } from '@/components/brand/Trace'
-import { LoadingState, SkeletonRow } from '@/components/ui/Skeleton'
-import { MenuBrowser } from '@/components/menu/MenuBrowser'
 import styles from './page.module.css'
 
-/* Números da página: todos derivados dos dados gerados, nenhum digitado. */
 const CART = cartSummary()
-const CATEGORY_COUNT = new Set(MENU_ITEMS.map((item) => item.category)).size
+const COZINHA = categoriasDaCozinha()
+const BEBIDAS = secoesDeBebida()
 
-const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+const DESCRICAO = `A cozinha do ${SITE.name}: ${COZINHA.length} categorias de influência mediterrânea, cada uma com a harmonização que a casa indica na carta de ${CART.total} rótulos. Pontão do Lago Sul, Brasília.`
 
 export const metadata: Metadata = {
   title: 'Cardápio',
-  description: `Cardápio completo do ${SITE.name}: ${MENU_ITEMS.length} itens entre cozinha, drinks e bebidas, com harmonizações que levam à carta de ${CART.total} rótulos. Pontão do Lago Sul, Brasília.`,
+  description: DESCRICAO,
   alternates: { canonical: '/cardapio' },
   openGraph: {
     type: 'website',
     url: '/cardapio',
     title: `Cardápio — ${SITE.name}`,
-    description: `${MENU_ITEMS.length} itens em ${CATEGORY_COUNT} categorias, e ${CART.total} rótulos na carta.`,
+    description: DESCRICAO,
   },
 }
 
-/** `?categoria=principais` pode chegar repetido; vale o primeiro. */
-function firstParam(value: string | string[] | undefined): string {
-  if (Array.isArray(value)) return value[0] ?? ''
-  return value ?? ''
-}
-
 /**
- * Cardápio digital.
+ * O CARDÁPIO, EM RESUMO.
  *
- * Não é um PDF na tela: é um índice navegável, buscável e linkável. A leitura
- * dos parâmetros acontece AQUI, no servidor, e não só no cliente — assim
- * `/cardapio?categoria=principais` chega com o HTML já montado, em vez de
- * mandar o visitante esperar o JavaScript para descobrir o que pediu.
+ * Esta página já foi o cardápio inteiro — 245 itens com preço, conferidos
+ * contra o documento oficial. Saiu a pedido da casa, e a razão é boa: o
+ * cardápio muda com frequência, e uma lista de preços publicada é uma lista
+ * que nasce vencida. Um site que informa preço errado é pior que um site que
+ * não informa preço.
  *
- * A carta de vinhos não é duplicada aqui. São 159 rótulos com país, uva e
- * região próprios: repeti-los no cardápio faria duas listas para manter e
- * nenhuma boa. O que fica é a ponte — o resumo e o link.
+ * O QUE FICOU é o que sobrevive à próxima troca: a estrutura da cozinha, a
+ * harmonização que cada categoria pede, e a fotografia real dos pratos. Quem
+ * quer o item e o valor de hoje vai ao cardápio digital, que a casa mantém —
+ * o link está aqui e é sempre a versão vigente.
+ *
+ * Server Component, sem estado nem parâmetro de busca: a página é a mesma para
+ * todo mundo e pode ser estática por inteiro.
  */
-export default async function CardapioPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}) {
-  const params = await searchParams
-  const initialCategory = firstParam(params.categoria)
-  const initialQuery = firstParam(params.busca)
-  const cellar = CELLAR[1] ?? CELLAR[0]
+export default function CardapioPage() {
+  const abertura = GASTRONOMY[1]
+  const meio = GASTRONOMY[4]
+  const ambiente = GARDEN[1]
 
   return (
     <>
       <script
         type="application/ld+json"
-        // Menu completo em schema.org: preço e descrição saem do mesmo dado que
-        // a página mostra, então nunca divergem do que está na mesa.
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
-            menuJsonLd(),
+          __html: JSON.stringify(
             breadcrumbJsonLd([
-              { name: 'Início', path: '/' },
+              { name: 'Início', path: '' },
               { name: 'Cardápio', path: '/cardapio' },
             ]),
-          ]),
+          ),
         }}
       />
 
-      <Section atmosphere="editorial" className={styles.page}>
-        <div className={styles.opener}>
-          <MonoLabel size="xs" muted className={styles.kicker}>
-            Cardápio
-          </MonoLabel>
+      {/* ------------------------------------------------------- abertura */}
 
-          <EditorialHeading as="h1" size="1" className={styles.title}>
-            <span className={styles.titleLine}>A vida é feita</span>
-            <span className={`${styles.titleLine} ${styles.titleLineEnd}`}>de escolhas.</span>
-          </EditorialHeading>
+      <Section atmosphere="editorial" className={styles.abertura}>
+        <div className={styles.aberturaInner}>
+          <header className={styles.head}>
+            <MonoLabel size="xs" muted>
+              Cardápio
+            </MonoLabel>
+            <EditorialHeading as="h1" size="2" className={styles.titulo}>
+              A cozinha que <em className={styles.italico}>acompanha a carta</em>
+            </EditorialHeading>
+            <Prose size="lg" className={styles.lead}>
+              Cozinha contemporânea de influência mediterrânea, pensada desde o começo para ser bebida
+              junto. Cada categoria abaixo traz a harmonização que a casa indica — a ponte entre a mesa
+              e os {CART.total} rótulos da carta.
+            </Prose>
+          </header>
 
-          {/* A frase já está inteira no h1 — o traço é o gesto da marca, não
-              informação, e por isso fica fora da árvore de acessibilidade. */}
-          <div className={styles.traceSlot} aria-hidden="true">
-            <Trace
-              points={[
-                { x: 0.96, y: 0.04 },
-                { x: 0.62, y: 0.58 },
-                { x: 0.33, y: 0.4 },
-                { x: 0.03, y: 0.96 },
-              ]}
-              viewBox={{ width: 900, height: 170 }}
-              mode="draw"
-              strokeWidth={1.6}
-            />
-          </div>
-
-          <dl className={styles.meta}>
-            <div className={styles.metaItem}>
-              <MonoLabel as="dt" size="xs" muted>
-                Itens
-              </MonoLabel>
-              <dd className={styles.metaValue}>{MENU_ITEMS.length}</dd>
-            </div>
-            <div className={styles.metaItem}>
-              <MonoLabel as="dt" size="xs" muted>
-                Categorias
-              </MonoLabel>
-              <dd className={styles.metaValue}>{CATEGORY_COUNT}</dd>
-            </div>
-            <div className={styles.metaItem}>
-              <MonoLabel as="dt" size="xs" muted>
-                Carta de vinhos
-              </MonoLabel>
-              <dd className={styles.metaValue}>
-                <Link href="/vinhos" className={styles.metaLink}>
-                  {CART.total} rótulos
-                </Link>
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        {/*
-          useSearchParams precisa de fronteira de Suspense: sem ela, uma rota
-          prerenderizada derrubaria a árvore inteira para renderização no
-          cliente. Com ela, o índice é entregue pronto e só a leitura da URL
-          fica sujeita ao request.
-        */}
-        <Suspense
-          fallback={
-            <div className={styles.loading}>
-              <LoadingState label="Montando o cardápio" />
-              <SkeletonRow count={8} />
-            </div>
-          }
-        >
-          <MenuBrowser initialQuery={initialQuery} initialCategory={initialCategory} />
-        </Suspense>
-      </Section>
-
-      <Section atmosphere="intensa" label="Carta de vinhos">
-        <div className={styles.wineInner}>
-          {cellar ? (
-            <div className={styles.wineFigure}>
+          {abertura ? (
+            <div className={styles.aberturaFoto}>
               <Reveal
-                photoId={cellar.id}
-                alt={cellar.alt}
-                sizes="(min-width: 900px) 38vw, 90vw"
+                photoId={abertura.id}
+                alt={abertura.alt}
+                sizes="(min-width: 1024px) 52vw, 92vw"
+                ratio={4 / 5}
                 motion="mask"
-                from="bottom"
+                priority
               />
             </div>
           ) : null}
+        </div>
+      </Section>
 
-          <div>
+      {/* ------------------------------------------------------- a cozinha */}
+
+      <Section atmosphere="bege" className={styles.cozinha}>
+        <div className={styles.inner}>
+          <div className={styles.cozinhaHead}>
             <MonoLabel size="xs" muted>
-              A carta
+              O que a casa serve
             </MonoLabel>
-
-            <EditorialHeading as="h2" size="2" className={styles.wineTitle}>
-              {BRAND_COPY.travel[0]},
-              <br />
-              <em>{BRAND_COPY.travel[1]}.</em>
+            <EditorialHeading as="h2" size="3" className={styles.subtitulo}>
+              Das tábuas às sobremesas
             </EditorialHeading>
+          </div>
 
-            <Prose muted className={styles.wineText}>
-              O cardápio termina aqui; a carta continua em outra página porque tem outro tamanho —
-              {' '}
-              {CART.total} rótulos de {CART.countries} países, com país, região e uva de cada um.
+          <ul className={styles.categorias}>
+            {COZINHA.map((categoria, i) => (
+              <li key={categoria.nome} className={styles.categoria}>
+                <MonoLabel size="xs" numeric muted className={styles.numero}>
+                  {String(i + 1).padStart(2, '0')}
+                </MonoLabel>
+                <h3 className={styles.categoriaNome}>{categoria.nome}</h3>
+                {categoria.vinhos.length > 0 ? (
+                  <p className={styles.harmoniza}>
+                    <span className={styles.harmonizaRotulo}>Harmoniza com </span>
+                    {categoria.vinhos.map((vinho, j) => (
+                      <span key={vinho}>
+                        {j > 0 ? ', ' : ''}
+                        <Link href={`/vinhos?categoria=${CATEGORY_SLUG[vinho]}`} className={styles.link}>
+                          {vinho}
+                        </Link>
+                      </span>
+                    ))}
+                    .
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+
+          {meio ? (
+            <div className={styles.meioFoto}>
+              <Reveal
+                photoId={meio.id}
+                alt={meio.alt}
+                sizes="(min-width: 1024px) 78vw, 92vw"
+                ratio={16 / 9}
+                motion="scale"
+                parallax={28}
+              />
+            </div>
+          ) : null}
+        </div>
+      </Section>
+
+      {/* -------------------------------------------------------- bebidas */}
+
+      <Section atmosphere="editorial" className={styles.bebidas}>
+        <div className={styles.inner}>
+          <div className={styles.bebidasGrid}>
+            <div className={styles.bebidasTexto}>
+              <MonoLabel size="xs" muted>
+                Além da carta
+              </MonoLabel>
+              <EditorialHeading as="h2" size="3" className={styles.subtitulo}>
+                Drinks, cervejas e o resto da mesa
+              </EditorialHeading>
+              <dl className={styles.listaBebidas}>
+                {BEBIDAS.map((bloco) => (
+                  <div key={bloco.secao} className={styles.blocoBebida}>
+                    <dt className={styles.bebidaSecao}>{bloco.secao}</dt>
+                    <dd className={styles.bebidaCategorias}>{bloco.categorias.join(' · ')}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+
+            {ambiente ? (
+              <div className={styles.bebidasFoto}>
+                <Reveal
+                  photoId={ambiente.id}
+                  alt={ambiente.alt}
+                  sizes="(min-width: 1024px) 40vw, 92vw"
+                  ratio={3 / 4}
+                  motion="mask"
+                  from="right"
+                />
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </Section>
+
+      {/* --------------------------------------------------------- saídas */}
+
+      <Section atmosphere="noturna" className={styles.saidas}>
+        <div className={styles.inner}>
+          <div className={styles.saidasInner}>
+            <EditorialHeading as="h2" size="2" className={styles.saidasTitulo}>
+              Os pratos e os valores de <em className={styles.italico}>hoje</em>
+            </EditorialHeading>
+            <Prose size="lg" className={styles.saidasLead}>
+              A casa troca o cardápio com frequência, então a lista com preço fica onde ela é
+              atualizada: no cardápio digital. Aqui ficam a estrutura e as harmonizações, que seguem
+              valendo depois da próxima troca.
             </Prose>
 
-            <dl className={styles.wineStats}>
-              <div className={styles.statItem}>
-                <MonoLabel as="dt" size="xs" muted>
-                  Rótulos
-                </MonoLabel>
-                <dd className={styles.statValue}>{CART.total}</dd>
-              </div>
-              <div className={styles.statItem}>
-                <MonoLabel as="dt" size="xs" muted>
-                  Países
-                </MonoLabel>
-                <dd className={styles.statValue}>{CART.countries}</dd>
-              </div>
-              <div className={styles.statItem}>
-                <MonoLabel as="dt" size="xs" muted>
-                  Em taça
-                </MonoLabel>
-                <dd className={styles.statValue}>{CART.byGlass}</dd>
-              </div>
-              <div className={styles.statItem}>
-                <MonoLabel as="dt" size="xs" muted>
-                  A partir de
-                </MonoLabel>
-                <dd className={styles.statValue}>{BRL.format(CART.minPrice)}</dd>
-              </div>
-            </dl>
-
-            <Cta href="/vinhos" variant="solid">
-              Ver a carta de vinhos
-            </Cta>
+            <div className={styles.acoes}>
+              <Cta href={RESERVATION.menuUrl} variant="solid" size="lg" external>
+                Ver cardápio digital
+              </Cta>
+              <Cta href="/vinhos" variant="line" size="lg">
+                A carta de vinhos
+              </Cta>
+              <Cta href={RESERVATION.url} variant="ghost" size="lg" external>
+                Reservar mesa
+              </Cta>
+            </div>
           </div>
         </div>
       </Section>

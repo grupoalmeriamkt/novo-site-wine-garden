@@ -1,7 +1,6 @@
-import { MENU_ITEMS } from '@/data/generated/menu'
 import { WINES } from '@/data/generated/wines'
 import { OPENING_HOURS } from '@/data/site'
-import type { MenuItem, Wine } from '@/types/content'
+import type { Wine } from '@/types/content'
 
 /**
  * O MOMENTO — que horas são no Wine Garden, como está o tempo lá fora, e o que
@@ -160,21 +159,27 @@ export function lerAmbiente(relogio: Relogio, clima: Clima | null): string {
 
 /* ------------------------------------------------------------- sugestão */
 
+/**
+ * A sugestão aponta sempre para a CARTA, nunca para um prato.
+ *
+ * Antes apontava para os dois. Mudou quando o cardápio saiu do site: a casa o
+ * troca com frequência, e sugerir um prato pelo nome, com preço, era prometer
+ * algo que pode não estar mais lá quando a pessoa chegar. A carta é estável e
+ * continua publicada rótulo a rótulo — e a ponte com a cozinha não se perde,
+ * porque as categorias escolhidas abaixo são as que o próprio cardápio indica
+ * para o momento (chuva à noite pede o mesmo tinto que o cardápio indica para
+ * os principais).
+ */
 export type Sugestao = {
   /** Motivo em uma frase — por que ISTO agora. */
   motivo: string
-  /** Nome do item, exatamente como no cardápio. */
+  /** Nome do rótulo, exatamente como na carta. */
   nome: string
   /** Preço em reais. */
   preco: number
   /** Para onde o clique leva. */
   href: string
-  /** `prato` ou `vinho` — muda o rótulo na interface. */
-  tipo: 'prato' | 'vinho'
 }
-
-const acha = <T extends { id: string }>(lista: readonly T[], id: string): T | undefined =>
-  lista.find((item) => item.id === id)
 
 /** Primeiro vinho de uma categoria, do mais barato para o mais caro. */
 function vinhoDaCategoria(categoria: string, servico: 'taca' | 'garrafa'): Wine | undefined {
@@ -190,18 +195,6 @@ function comoVinho(wine: Wine | undefined, motivo: string): Sugestao | null {
     nome: wine.name,
     preco: wine.price,
     href: `/vinhos?busca=${encodeURIComponent(wine.name)}`,
-    tipo: 'vinho',
-  }
-}
-
-function comoPrato(item: MenuItem | undefined, motivo: string): Sugestao | null {
-  if (!item) return null
-  return {
-    motivo,
-    nome: item.name,
-    preco: item.price,
-    href: `/cardapio?busca=${encodeURIComponent(item.name)}`,
-    tipo: 'prato',
   }
 }
 
@@ -210,8 +203,9 @@ function comoPrato(item: MenuItem | undefined, motivo: string): Sugestao | null 
  *
  * As regras são avaliadas em ordem e a primeira que casar vence — da condição
  * mais específica (chove agora) para a mais geral (é noite). Cada uma aponta
- * para um item que existe no cardápio; se o item sair da carta, a regra
- * simplesmente não produz sugestão em vez de mostrar algo inexistente.
+ * para uma CATEGORIA da carta, e o rótulo escolhido é o mais barato dela: se a
+ * categoria ficar vazia, a regra simplesmente não produz sugestão em vez de
+ * mostrar algo inexistente.
  */
 export function sugerir(relogio: Relogio, clima: Clima | null): Sugestao | null {
   const chovendo = clima ? clima.chuva >= 55 || /RAIN|SHOWER|STORM/.test(clima.tipo) : false
@@ -228,12 +222,15 @@ export function sugerir(relogio: Relogio, clima: Clima | null): Sugestao | null 
         )
       : null,
 
-    /* Chuva na hora do jantar: a casa é coberta, e a mesa pede algo assado. */
+    /* Chuva na hora do jantar: a casa é coberta, e a mesa pede o tinto que o
+       cardápio indica para os principais. */
     chovendo && relogio.periodo === 'noite'
-      ? comoPrato(acha(MENU_ITEMS, 'file-au-poivre'), 'Chuva lá fora, jardim coberto aqui')
+      ? comoVinho(vinhoDaCategoria('Tinto Encorpado', 'taca'), 'Chuva lá fora, jardim coberto aqui')
       : null,
 
-    chovendo ? comoPrato(acha(MENU_ITEMS, 'crema-de-cogumelos'), 'Dia de chuva pede algo quente') : null,
+    chovendo
+      ? comoVinho(vinhoDaCategoria('Tinto Médio Corpo', 'taca'), 'Dia de chuva pede algo quente')
+      : null,
 
     /* Frio de Brasília é raro e curto — quando vem, o tinto encorpado ganha. */
     frio
@@ -253,14 +250,14 @@ export function sugerir(relogio: Relogio, clima: Clima | null): Sugestao | null 
         )
       : null,
 
-    /* Almoço de fim de semana no jardim. */
+    /* Almoço de fim de semana no jardim: o espumante que as saladas pedem. */
     relogio.aberto && relogio.fimDeSemana && relogio.periodo === 'tarde'
-      ? comoPrato(acha(MENU_ITEMS, 'burrata-de-bottega'), 'Tarde de fim de semana no jardim')
+      ? comoVinho(vinhoDaCategoria('Espumante', 'taca'), 'Tarde de fim de semana no jardim')
       : null,
 
-    /* Tábua para dividir — o gesto da mesa cheia. */
+    /* Mesa cheia para dividir — a harmonização das tábuas. */
     relogio.aberto && relogio.fimDeSemana && relogio.periodo === 'noite'
-      ? comoPrato(acha(MENU_ITEMS, 'tabua-mista'), 'Noite de fim de semana, mesa cheia')
+      ? comoVinho(vinhoDaCategoria('Tinto Leve', 'taca'), 'Noite de fim de semana, mesa cheia')
       : null,
 
     /* Última hora: quem chega agora quer uma taça, não uma garrafa. */
@@ -270,12 +267,12 @@ export function sugerir(relogio: Relogio, clima: Clima | null): Sugestao | null 
 
     /* Almoço em dia de semana. */
     relogio.aberto && !relogio.fimDeSemana && relogio.periodo === 'tarde'
-      ? comoPrato(acha(MENU_ITEMS, 'salada-do-wine'), 'Almoço no meio da semana')
+      ? comoVinho(vinhoDaCategoria('Brancos Aromáticos', 'taca'), 'Almoço no meio da semana')
       : null,
 
-    /* Jantar em dia de semana. */
+    /* Jantar em dia de semana — o branco amadeirado que os crudos aceitam. */
     relogio.aberto && relogio.periodo === 'noite'
-      ? comoPrato(acha(MENU_ITEMS, 'carpaccio-de-mignon'), 'Para começar a noite')
+      ? comoVinho(vinhoDaCategoria('Branco Amadeirado', 'taca'), 'Para começar a noite')
       : null,
   ]
 

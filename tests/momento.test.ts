@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { lerRelogio, montarMomento, sugerir, type Clima } from '../src/lib/momento.ts'
-import { MENU_ITEMS } from '../src/data/generated/menu.ts'
 import { WINES } from '../src/data/generated/wines.ts'
 
 /**
@@ -78,9 +77,12 @@ describe('relógio da casa', () => {
 })
 
 describe('sugestão do momento', () => {
-  const nomesReais = new Set([...MENU_ITEMS.map((i) => i.name), ...WINES.map((w) => w.name)])
+  /* A sugestão aponta sempre para a carta: o cardápio saiu do site porque a
+     casa o troca com frequência, e sugerir um prato pelo nome era prometer
+     algo que pode não estar mais lá. */
+  const nomesReais = new Set(WINES.map((w) => w.name))
 
-  it('toda sugestão aponta para um item que existe no cardápio', () => {
+  it('toda sugestão aponta para um rótulo que existe na carta', () => {
     const climas: (Clima | null)[] = [
       null,
       ceu(),
@@ -99,7 +101,7 @@ describe('sugestão do momento', () => {
           if (!s) continue
           assert.ok(
             nomesReais.has(s.nome),
-            `sugeriu "${s.nome}", que não existe no cardápio (dia ${dia}, ${hora}h)`,
+            `sugeriu "${s.nome}", que não existe na carta (dia ${dia}, ${hora}h)`,
           )
           assert.ok(s.preco > 0, `"${s.nome}" com preço ${s.preco}`)
           assert.ok(s.motivo.length > 3, 'sugestão sem motivo legível')
@@ -108,14 +110,17 @@ describe('sugestão do momento', () => {
     }
   })
 
-  it('chuva à noite leva a um prato quente', () => {
+  it('chuva à noite leva a um tinto encorpado', () => {
     const s = sugerir(lerRelogio(QUARTA(20)), ceu({ tipo: 'RAIN', chuva: 85, temperatura: 20 }))
-    assert.equal(s?.nome, 'Filé au Poivre')
+    const wine = WINES.find((w) => w.name === s?.nome)
+    assert.equal(wine?.category, 'Tinto Encorpado')
+    assert.match(s?.motivo ?? '', /chuva/i)
   })
 
   it('calor com sol leva a algo gelado em taça', () => {
     const s = sugerir(lerRelogio(QUARTA(14)), ceu({ tipo: 'CLEAR', temperatura: 32 }))
-    assert.equal(s?.tipo, 'vinho')
+    const wine = WINES.find((w) => w.name === s?.nome)
+    assert.equal(wine?.servingType, 'taca')
     assert.match(s?.motivo ?? '', /32°/)
   })
 
@@ -131,9 +136,11 @@ describe('sugestão do momento', () => {
     assert.equal(wine?.servingType, 'taca')
   })
 
-  it('fim de semana à noite sugere algo de compartilhar', () => {
+  it('fim de semana à noite sugere o tinto leve das tábuas', () => {
     const s = sugerir(lerRelogio(SABADO(21)), ceu({ dia: false }))
-    assert.equal(s?.nome, 'Tábua Mista')
+    const wine = WINES.find((w) => w.name === s?.nome)
+    assert.equal(wine?.category, 'Tinto Leve')
+    assert.match(s?.motivo ?? '', /fim de semana/i)
   })
 
   it('com a casa fechada, a sugestão vira convite', () => {

@@ -147,8 +147,6 @@ export type MatchBudget = 'ate-60' | '60-150' | '150-350' | 'sem-limite'
 export type MatchAnswers = {
   moment: MatchMoment
   style: MatchStyle
-  /** id de MenuItem ou categoria; `null` quando o visitante pula a etapa. */
-  dish: string | null
   budget: MatchBudget
 }
 

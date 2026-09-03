@@ -1,6 +1,6 @@
 import { WINES } from '@/data/generated/wines'
-import { MENU_ITEMS } from '@/data/generated/menu'
-import { CONTACTS, LOCATION, OPENING_HOURS, RESERVATION } from '@/data/site'
+import { categoriasDaCozinha } from '@/lib/cozinha'
+import { CONTACTS, EVENTS_CONTACT, LOCATION, OPENING_HOURS, RESERVATION } from '@/data/site'
 
 /**
  * PERGUNTAS E RESPOSTAS.
@@ -42,9 +42,15 @@ const PRECOS_TACA = WINES.filter((w) => w.servingType === 'taca').map((w) => w.p
 const TACA_MIN = Math.min(...PRECOS_TACA)
 const TACA_MAX = Math.max(...PRECOS_TACA)
 
-const PRATOS = MENU_ITEMS.filter((i) => i.section === 'Cardápio')
-const VEGANOS = MENU_ITEMS.filter((i) => i.vegan).length
-const COM_HARMONIZACAO = PRATOS.filter((p) => p.pairings.length > 0).length
+/*
+ * A cozinha entra por CATEGORIA, nunca por prato.
+ *
+ * O cardápio muda com frequência e saiu do site por isso. Uma resposta de FAQ
+ * que nomeia um prato ou conta quantos existem é uma resposta que vira mentira
+ * na próxima troca — e esta aqui vai parar na boca de assistentes, onde
+ * circula sem correção. As categorias e as harmonizações sobrevivem.
+ */
+const CATEGORIAS_COZINHA = categoriasDaCozinha()
 
 const brl = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
@@ -98,17 +104,17 @@ export const FAQ: readonly Pergunta[] = [
   {
     id: 'cozinha',
     pergunta: 'Que tipo de comida o Wine Garden serve?',
-    resposta: `Cozinha contemporânea de influência mediterrânea, pensada para acompanhar vinho: ${PRATOS.length} pratos entre tábuas de queijos e charcutaria, crudos, tapas, saladas e principais. ${COM_HARMONIZACAO} deles trazem no cardápio a categoria de vinho com que harmonizam.`,
+    resposta: `Cozinha contemporânea de influência mediterrânea, pensada para acompanhar vinho, em ${CATEGORIAS_COZINHA.length} categorias: ${CATEGORIAS_COZINHA.map((c) => c.nome.toLowerCase()).join(', ')}. Cada categoria traz no cardápio a indicação de com que vinho harmoniza. Os pratos e os valores vigentes estão no cardápio digital da casa.`,
   },
   {
     id: 'harmonizacao',
     pergunta: 'O cardápio indica qual vinho combina com cada prato?',
-    resposta: `Sim. ${COM_HARMONIZACAO} pratos trazem a harmonização declarada pela casa — por exemplo, o Filé au Poivre harmoniza com Tinto Médio Corpo e Tinto Encorpado. O site também tem o Wine Match, que sugere de dois a quatro rótulos a partir do momento, do estilo desejado, do prato e do quanto se quer investir.`,
+    resposta: `Sim. O cardápio declara a harmonização de cada categoria — os crudos pedem branco leve e espumante, os principais vão do branco amadeirado ao tinto de médio corpo, as sobremesas pedem vinho de sobremesa. O site também tem o Wine Match, que sugere de dois a quatro rótulos a partir do momento, do estilo desejado e do quanto se quer investir.`,
   },
   {
     id: 'vegano',
     pergunta: 'Há opções veganas ou vegetarianas?',
-    resposta: `O cardápio marca ${VEGANOS} ${VEGANOS === 1 ? 'item' : 'itens'} como vegano. Há também saladas, pratos à base de cogumelos e a seleção de pães e pastinhas. Para restrições específicas, vale confirmar com a casa pelo WhatsApp ${whatsapp?.value ?? ''}.`,
+    resposta: `Sim. O cardápio marca os itens veganos e traz saladas, pratos à base de cogumelos e a seleção de pães e pastinhas. Como o cardápio muda com frequência, o que está disponível hoje aparece no cardápio digital — e, para restrições específicas, vale confirmar com a casa pelo WhatsApp ${whatsapp?.value ?? ''}.`,
   },
   {
     id: 'musica',
@@ -120,8 +126,7 @@ export const FAQ: readonly Pergunta[] = [
   {
     id: 'eventos',
     pergunta: 'É possível fazer eventos no Wine Garden?',
-    resposta:
-      'Sim. A casa recebe aniversários, confraternizações de empresa, celebrações e jantares fechados. O contato para eventos é feito por WhatsApp, e a proposta inclui espaço, cardápio e carta.',
+    resposta: `Sim. A casa recebe aniversários, confraternizações de empresa, celebrações e jantares fechados. O contato comercial de eventos é o WhatsApp ${EVENTS_CONTACT.label}, e a proposta inclui espaço, cardápio e carta.`,
   },
   {
     id: 'happy-hour',

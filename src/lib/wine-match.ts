@@ -1,20 +1,20 @@
 import { WINES } from '@/data/generated/wines'
-import { MENU_ITEMS } from '@/data/generated/menu'
-import { PAIRING_TO_CATEGORY } from '@/lib/wine-vocab'
 import type { MatchAnswers, MatchBudget, MatchResult, MatchStyle, Wine, WineCategory } from '@/types/content'
 
 /**
  * WINE MATCH — recomendação determinística.
  *
  * A regra que sustenta tudo: nenhuma recomendação nasce de opinião do código.
- * A ponte mais forte é factual — os pratos do cardápio já declaram com que
- * CATEGORIA de vinho harmonizam ("Harmoniza com: Tinto Médio Corpo"), e essas
- * categorias são as mesmas da carta. Quando o visitante escolhe um prato, o
- * casamento é o que a casa escreveu, não o que o algoritmo achou.
+ * Cada ponto somado gera uma frase de justificativa — se não dá para explicar,
+ * não pontua — e as frases são o que a tela mostra.
  *
- * Os demais sinais (estilo, momento, orçamento) apenas ordenam dentro disso, e
- * cada ponto somado gera uma frase de justificativa — se não dá para explicar,
- * não pontua.
+ * HOUVE UMA ETAPA DE PRATO, e ela valia mais que todo o resto somado: o
+ * cardápio declara com que categoria cada prato harmoniza, e isso era a casa
+ * falando, não o algoritmo. Saiu junto com o cardápio do site, porque
+ * recomendar a partir de um prato que pode ter saído da cozinha é decidir
+ * sobre uma premissa que ninguém garantiu. Os sinais que restaram — estilo,
+ * momento e orçamento — são todos declarados pelo próprio visitante no
+ * momento da pergunta, e nenhum deles envelhece.
  *
  * A camada de IA prevista para depois entra em `rankWithProvider` (ver
  * sommelier.ts): esta função continua sendo o piso, e o site funciona inteiro
@@ -56,8 +56,6 @@ const BUDGET_LABEL: Readonly<Record<MatchBudget, string>> = {
 /* --------------------------------------------------------------- pontuação */
 
 const WEIGHTS = {
-  /** A harmonização impressa no cardápio é o sinal mais forte que existe. */
-  dishPairing: 46,
   /** Categoria bate exatamente com o estilo pedido. */
   styleExact: 24,
   /** Categoria é adjacente ao estilo pedido. */
@@ -96,22 +94,11 @@ const PROFILE_LABEL: Readonly<Record<string, string>> = {
 
 type Scored = { wine: Wine; score: number; reasons: string[] }
 
-function scoreWine(wine: Wine, answers: MatchAnswers, dish: (typeof MENU_ITEMS)[number] | undefined): Scored {
+function scoreWine(wine: Wine, answers: MatchAnswers): Scored {
   let score = 0
   const reasons: string[] = []
 
-  /* 1. Prato — a harmonização que a própria casa declara. */
-  if (dish && dish.pairings.length > 0) {
-    const categories = dish.pairings
-      .map((p) => PAIRING_TO_CATEGORY[p])
-      .filter((c): c is WineCategory => Boolean(c))
-    if (categories.includes(wine.category)) {
-      score += WEIGHTS.dishPairing
-      reasons.push(`O cardápio harmoniza ${dish.name} com ${wine.category.toLowerCase()}.`)
-    }
-  }
-
-  /* 2. Estilo pedido. */
+  /* 1. Estilo pedido. */
   const styleCategories = STYLE_TO_CATEGORIES[answers.style]
   const styleIndex = styleCategories.indexOf(wine.category)
   if (styleIndex === 0) {
@@ -201,7 +188,6 @@ export function matchWines(
   answers: MatchAnswers,
   wines: readonly Wine[] = WINES,
 ): { results: MatchResult[]; relaxedBudget: boolean } {
-  const dish = answers.dish ? MENU_ITEMS.find((item) => item.id === answers.dish) : undefined
   const [min, max] = BUDGET_RANGE[answers.budget]
 
   const inBudget = wines.filter((w) => w.price >= min && (max === null || w.price <= max))
@@ -212,7 +198,7 @@ export function matchWines(
   const pool = relaxedBudget ? wines : inBudget
 
   const scored = pool
-    .map((wine) => scoreWine(wine, answers, dish))
+    .map((wine) => scoreWine(wine, answers))
     .filter((entry) => entry.score > 0)
     .sort((a, b) => b.score - a.score || a.wine.price - b.wine.price)
 
@@ -254,13 +240,6 @@ export function matchWines(
   }))
 
   return { results, relaxedBudget }
-}
-
-/** Pratos que fazem sentido oferecer na etapa de comida: só os que a casa
- *  harmonizou. Oferecer um prato sem harmonização seria pedir um dado que não
- *  altera o resultado. */
-export function dishesForMatch() {
-  return MENU_ITEMS.filter((item) => item.section === 'Cardápio' && item.pairings.length > 0)
 }
 
 export { BUDGET_LABEL, STYLE_LABEL }

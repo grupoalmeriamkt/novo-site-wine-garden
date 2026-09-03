@@ -11,8 +11,8 @@ import { WINES } from '@/data/generated/wines'
 import { BRAND_COPY, RESERVATION } from '@/data/site'
 import { track } from '@/lib/analytics'
 import { askSommelier, type SommelierAnswer } from '@/lib/sommelier'
-import { BUDGET_LABEL, STYLE_LABEL, dishesForMatch } from '@/lib/wine-match'
-import type { MatchBudget, MatchMoment, MatchStyle, MatchAnswers, MenuItem } from '@/types/content'
+import { BUDGET_LABEL, STYLE_LABEL } from '@/lib/wine-match'
+import type { MatchBudget, MatchMoment, MatchStyle, MatchAnswers } from '@/types/content'
 import styles from './WineMatch.module.css'
 
 /**
@@ -45,13 +45,8 @@ const PARAM = {
   stage: 'etapa',
   moment: 'momento',
   style: 'estilo',
-  dish: 'prato',
   budget: 'faixa',
 } as const
-
-/** Valor de `prato` para "Só o vinho" — distingue "não respondeu" de
- *  "respondeu que não vai comer", que viram `dish: null` no mesmo campo. */
-const DISH_NONE = 'nenhum'
 
 const RESULT_STAGE = 'resultado'
 
@@ -59,7 +54,7 @@ const RESULT_STAGE = 'resultado'
  *  empilhada por nós (ver `goBack`). */
 const DEPTH_KEY = 'wineMatchDepth'
 
-type StepId = 1 | 2 | 3 | 4
+type StepId = 1 | 2 | 3
 type Stage = StepId | typeof RESULT_STAGE
 
 const MOMENT_VALUES = ['jantar', 'encontro', 'brinde', 'descobrir'] as const
@@ -100,37 +95,23 @@ const BUDGET_CHOICES: readonly Choice<MatchBudget>[] = [
   { value: 'sem-limite', title: BUDGET_LABEL['sem-limite'], note: 'A carta inteira, até os 1.484.' },
 ]
 
+/**
+ * TRÊS ETAPAS, não quatro.
+ *
+ * A etapa "Vai comer?" listava os pratos harmonizados pela casa e era a mais
+ * forte do ranking. Saiu junto com o cardápio do site: a casa troca os pratos
+ * com frequência, e uma pergunta que oferece um prato que pode não existir
+ * mais leva a pessoa a uma recomendação feita sobre uma premissa falsa.
+ *
+ * O que a cozinha dizia continua sendo dito, só que pelo estilo: as categorias
+ * de vinho oferecidas na etapa 2 são as mesmas que o cardápio indica prato a
+ * prato.
+ */
 const STEPS = [
   { id: 1, param: PARAM.moment, kicker: 'Momento', question: 'Qual é o momento?' },
   { id: 2, param: PARAM.style, kicker: 'Estilo', question: 'O que você prefere?' },
-  { id: 3, param: PARAM.dish, kicker: 'Cozinha', question: 'Vai comer?' },
-  { id: 4, param: PARAM.budget, kicker: 'Investimento', question: 'Quanto pretende investir?' },
+  { id: 3, param: PARAM.budget, kicker: 'Investimento', question: 'Quanto pretende investir?' },
 ] as const satisfies readonly { id: StepId; param: string; kicker: string; question: string }[]
-
-/* ------------------------------------------------------------------- pratos */
-
-/** 26 pratos que a casa harmonizou. Calculado uma vez no módulo: é filtro puro
- *  sobre um array constante, não faz sentido repetir a cada render. */
-const DISHES = dishesForMatch()
-const DISH_BY_ID = new Map(DISHES.map((dish) => [dish.id, dish]))
-
-/** Agrupados na ordem do cardápio impresso — 26 opções soltas numa tela só
- *  seriam uma lista para rolar, não uma escolha para fazer. */
-const DISH_GROUPS: readonly { category: string; items: readonly MenuItem[] }[] = (() => {
-  const groups = new Map<string, MenuItem[]>()
-  for (const dish of DISHES) {
-    const list = groups.get(dish.category)
-    if (list) list.push(dish)
-    else groups.set(dish.category, [dish])
-  }
-  return [...groups].map(([category, items]) => ({ category, items }))
-})()
-
-const deaccent = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
 
 /* ------------------------------------------------------------------ helpers */
 
@@ -144,21 +125,13 @@ type ParamBag = { get(name: string): string | null }
 type Draft = {
   moment: MatchMoment | null
   style: MatchStyle | null
-  /** id do prato; `null` tanto para "Só o vinho" quanto para "ainda não respondeu". */
-  dish: string | null
-  /** Só isto distingue os dois casos acima. */
-  dishAnswered: boolean
   budget: MatchBudget | null
 }
 
 function readDraft(params: ParamBag): Draft {
-  const rawDish = params.get(PARAM.dish)
-  const known = rawDish !== null && DISH_BY_ID.has(rawDish)
   return {
     moment: parseOne(MOMENT_VALUES, params.get(PARAM.moment)),
     style: parseOne(STYLE_VALUES, params.get(PARAM.style)),
-    dish: known ? rawDish : null,
-    dishAnswered: known || rawDish === DISH_NONE,
     budget: parseOne(BUDGET_VALUES, params.get(PARAM.budget)),
   }
 }
@@ -167,8 +140,7 @@ function readDraft(params: ParamBag): Draft {
 function firstOpenStage(draft: Draft): Stage {
   if (draft.moment === null) return 1
   if (draft.style === null) return 2
-  if (!draft.dishAnswered) return 3
-  if (draft.budget === null) return 4
+  if (draft.budget === null) return 3
   return RESULT_STAGE
 }
 
@@ -176,11 +148,10 @@ function parseStage(raw: string | null): Stage {
   if (raw === RESULT_STAGE) return RESULT_STAGE
   if (raw === '2') return 2
   if (raw === '3') return 3
-  if (raw === '4') return 4
   return 1
 }
 
-const stageOrder = (stage: Stage): number => (stage === RESULT_STAGE ? 5 : stage)
+const stageOrder = (stage: Stage): number => (stage === RESULT_STAGE ? 4 : stage)
 const stageToParam = (stage: Stage): string => (stage === RESULT_STAGE ? RESULT_STAGE : String(stage))
 const pad = (value: number) => String(value).padStart(2, '0')
 const priceLabel = (value: number) => `R$ ${value.toLocaleString('pt-BR')}`
@@ -241,7 +212,6 @@ function MatchFlow() {
   const startedRef = useRef(false)
   const completedRef = useRef<string>('')
   const lastStageRef = useRef<Stage | null>(null)
-  const [query, setQuery] = useState('')
 
   /* ------------------------------------------------------------ navegação */
 
@@ -292,7 +262,7 @@ function MatchFlow() {
       window.history.back()
       return
     }
-    const previous: Stage = stage === RESULT_STAGE ? 4 : ((stage - 1) as StepId)
+    const previous: Stage = stage === RESULT_STAGE ? 3 : ((stage - 1) as StepId)
     const params = new URLSearchParams(searchParams.toString())
     params.set(PARAM.stage, stageToParam(previous))
     commit(params, 'replace')
@@ -300,7 +270,6 @@ function MatchFlow() {
 
   const restart = useCallback(() => {
     track('wine_match_start', {})
-    setQuery('')
     // Empilha em vez de substituir: quem clicou em "refazer" por engano volta
     // ao resultado com um toque no botão do navegador.
     window.history.pushState({ [DEPTH_KEY]: readDepth() + 1 }, '', pathname)
@@ -393,9 +362,8 @@ function MatchFlow() {
 
   const answers = useMemo<MatchAnswers | null>(() => {
     if (draft.moment === null || draft.style === null || draft.budget === null) return null
-    if (!draft.dishAnswered) return null
-    return { moment: draft.moment, style: draft.style, dish: draft.dish, budget: draft.budget }
-  }, [draft.moment, draft.style, draft.budget, draft.dish, draft.dishAnswered])
+    return { moment: draft.moment, style: draft.style, budget: draft.budget }
+  }, [draft.moment, draft.style, draft.budget])
 
   /**
    * Identidade do pedido em curso. `null` enquanto faltar resposta ou enquanto
@@ -403,7 +371,7 @@ function MatchFlow() {
    */
   const requestKey = useMemo(() => {
     if (answers === null || stage !== RESULT_STAGE) return null
-    return `${answers.moment}|${answers.style}|${answers.dish ?? DISH_NONE}|${answers.budget}`
+    return `${answers.moment}|${answers.style}|${answers.budget}`
   }, [answers, stage])
 
   /*
@@ -439,18 +407,6 @@ function MatchFlow() {
 
   const step = stage === RESULT_STAGE ? null : STEPS.find((entry) => entry.id === stage)
 
-  const dishMatches = useMemo(() => {
-    const term = deaccent(query.trim())
-    if (!term) return DISH_GROUPS
-    return DISH_GROUPS.map((group) => ({
-      category: group.category,
-      items: group.items.filter((item) => deaccent(`${item.name} ${item.category}`).includes(term)),
-    })).filter((group) => group.items.length > 0)
-  }, [query])
-
-  const dishMatchCount = dishMatches.reduce((total, group) => total + group.items.length, 0)
-  const chosenDish = draft.dish !== null ? DISH_BY_ID.get(draft.dish) : undefined
-
   return (
     <Section atmosphere="intensa" bleed className={styles.root}>
       <div ref={stageRef} className={styles.stage}>
@@ -478,11 +434,11 @@ function MatchFlow() {
 
           <p className={styles.count}>
             <span className="u-visually-hidden">
-              {stage === RESULT_STAGE ? 'Resultado do Wine Match' : `Etapa ${stage} de 4`}
+              {stage === RESULT_STAGE ? 'Resultado do Wine Match' : `Etapa ${stage} de 3`}
             </span>
             <span aria-hidden="true">
               <MonoLabel size="xs" numeric muted>
-                {stage === RESULT_STAGE ? 'Resultado' : `${pad(stage)} / 04`}
+                {stage === RESULT_STAGE ? 'Resultado' : `${pad(stage)} / 03`}
               </MonoLabel>
             </span>
           </p>
@@ -518,129 +474,43 @@ function MatchFlow() {
             </div>
 
             <div className={styles.optionsCol}>
-              {step.id === 3 ? (
-                <>
-                  <div className={styles.dishTools}>
-                    <label className={styles.searchField}>
-                      <span className="u-visually-hidden">Buscar prato pelo nome</span>
-                      <input
-                        type="search"
-                        className={styles.search}
-                        value={query}
-                        placeholder="Buscar prato"
-                        autoComplete="off"
-                        onChange={(event) => setQuery(event.target.value)}
-                        onKeyDown={(event) => {
-                          // Seta para baixo e Enter entregam a lista: digitar e
-                          // escolher sem tirar a mão do teclado.
-                          if (event.key !== 'ArrowDown' && event.key !== 'Enter') return
-                          event.preventDefault()
-                          groupRef.current?.querySelector<HTMLButtonElement>('[data-option]')?.focus()
-                        }}
-                      />
-                    </label>
-                    <MonoLabel size="xs" muted numeric className={styles.dishCount}>
-                      {pad(dishMatchCount)} pratos
-                    </MonoLabel>
-                  </div>
-
-                  <div
-                    ref={groupRef}
-                    role="group"
-                    aria-labelledby="wm-question"
-                    tabIndex={-1}
-                    className={`${styles.options} ${styles.dishScroller}`}
-                  >
-                    <button
-                      type="button"
-                      data-option
-                      className={`${styles.option} ${styles.optionSolo}`}
-                      style={{ '--i': 0 } as React.CSSProperties}
-                      aria-current={draft.dishAnswered && draft.dish === null ? 'true' : undefined}
-                      onClick={() => choose(3, PARAM.dish, DISH_NONE)}
-                    >
-                      <span className={styles.optionTitle}>Só o vinho</span>
-                      <span className={styles.optionNote}>
-                        Sem prato: a escolha olha só para o momento, o estilo e a faixa.
-                      </span>
-                    </button>
-
-                    {dishMatches.map((group) => (
-                      <div key={group.category} className={styles.dishGroup}>
-                        <MonoLabel as="h3" size="xs" muted className={styles.dishGroupTitle}>
-                          {group.category}
-                        </MonoLabel>
-                        {group.items.map((item, index) => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            data-option
-                            className={`${styles.option} ${styles.dishRow}`}
-                            style={{ '--i': Math.min(index + 1, 6) } as React.CSSProperties}
-                            aria-current={draft.dish === item.id ? 'true' : undefined}
-                            onClick={() => choose(3, PARAM.dish, item.id)}
-                          >
-                            <span className={styles.dishName}>{item.name}</span>
-                            <span className={styles.dishPrice}>{priceLabel(item.price)}</span>
-                          </button>
-                        ))}
-                      </div>
-                    ))}
-
-                    {dishMatchCount === 0 ? (
-                      <p className={styles.empty}>
-                        <MonoLabel size="xs" muted>
-                          Nenhum prato com esse nome. Limpe a busca ou siga só com o vinho.
-                        </MonoLabel>
-                      </p>
-                    ) : null}
-                  </div>
-                </>
-              ) : (
-                <div
-                  ref={groupRef}
-                  role="group"
-                  aria-labelledby="wm-question"
-                  tabIndex={-1}
-                  className={styles.options}
-                >
-                  {(step.id === 1 ? MOMENT_CHOICES : step.id === 2 ? STYLE_CHOICES : BUDGET_CHOICES).map(
-                    (choice, index) => {
-                      const selected =
-                        (step.id === 1 && draft.moment === choice.value) ||
-                        (step.id === 2 && draft.style === choice.value) ||
-                        (step.id === 4 && draft.budget === choice.value)
-                      return (
-                        <button
-                          key={choice.value}
-                          type="button"
-                          data-option
-                          className={styles.option}
-                          style={{ '--i': index } as React.CSSProperties}
-                          aria-current={selected ? 'true' : undefined}
-                          onClick={() => choose(step.id, step.param, choice.value)}
-                        >
-                          <span className={styles.optionIndex} aria-hidden="true">
-                            {pad(index + 1)}
-                          </span>
-                          <span className={styles.optionTitle}>{choice.title}</span>
-                          <span className={styles.optionNote}>{choice.note}</span>
-                        </button>
-                      )
-                    },
-                  )}
-                </div>
-              )}
+              <div
+                ref={groupRef}
+                role="group"
+                aria-labelledby="wm-question"
+                tabIndex={-1}
+                className={styles.options}
+              >
+                {(step.id === 1 ? MOMENT_CHOICES : step.id === 2 ? STYLE_CHOICES : BUDGET_CHOICES).map(
+                  (choice, index) => {
+                    const selected =
+                      (step.id === 1 && draft.moment === choice.value) ||
+                      (step.id === 2 && draft.style === choice.value) ||
+                      (step.id === 3 && draft.budget === choice.value)
+                    return (
+                      <button
+                        key={choice.value}
+                        type="button"
+                        data-option
+                        className={styles.option}
+                        style={{ '--i': index } as React.CSSProperties}
+                        aria-current={selected ? 'true' : undefined}
+                        onClick={() => choose(step.id, step.param, choice.value)}
+                      >
+                        <span className={styles.optionIndex} aria-hidden="true">
+                          {pad(index + 1)}
+                        </span>
+                        <span className={styles.optionTitle}>{choice.title}</span>
+                        <span className={styles.optionNote}>{choice.note}</span>
+                      </button>
+                    )
+                  },
+                )}
+              </div>
             </div>
           </div>
         ) : (
-          <MatchResults
-            answer={answer}
-            draft={draft}
-            dishName={chosenDish?.name ?? null}
-            onEdit={goTo}
-            onRestart={restart}
-          />
+          <MatchResults answer={answer} draft={draft} onEdit={goTo} onRestart={restart} />
         )}
 
         {/* ------------------------------------------------------- rodapé */}
@@ -670,17 +540,15 @@ function MatchFlow() {
 type ResultsProps = {
   answer: SommelierAnswer | null
   draft: Draft
-  dishName: string | null
   onEdit: (stage: Stage) => void
   onRestart: () => void
 }
 
-function MatchResults({ answer, draft, dishName, onEdit, onRestart }: ResultsProps) {
+function MatchResults({ answer, draft, onEdit, onRestart }: ResultsProps) {
   const chips: readonly { label: string; stage: StepId }[] = [
     { label: MOMENT_CHOICES.find((c) => c.value === draft.moment)?.title ?? '', stage: 1 },
     { label: draft.style !== null ? STYLE_LABEL[draft.style] : '', stage: 2 },
-    { label: dishName ?? 'Só o vinho', stage: 3 },
-    { label: draft.budget !== null ? BUDGET_LABEL[draft.budget] : '', stage: 4 },
+    { label: draft.budget !== null ? BUDGET_LABEL[draft.budget] : '', stage: 3 },
   ]
 
   if (answer === null) {

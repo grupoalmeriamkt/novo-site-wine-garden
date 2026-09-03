@@ -5,7 +5,7 @@ import { Trace } from '@/components/brand/Trace'
 import { LoadingState, SkeletonRow } from '@/components/ui/Skeleton'
 import { WineExplorer } from '@/components/wine/WineExplorer'
 import { WINES, cartSummary, countriesInList, topGrapes } from '@/lib/wines'
-import { breadcrumbJsonLd, menuJsonLd } from '@/lib/seo'
+import { breadcrumbJsonLd, cartaJsonLd } from '@/lib/seo'
 import { BRAND_COPY, SITE } from '@/data/site'
 /* O desenho da abertura mora no mesmo módulo do explorador: é a mesma peça
    editorial, só que a metade de cima é estática e continua no servidor. Isso
@@ -64,8 +64,8 @@ export default function VinhosPage() {
     <>
       <script
         type="application/ld+json"
-        // O menu completo, com o preço real de cada rótulo do cardápio oficial.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(menuJsonLd()) }}
+        // A carta inteira, com o preço real de cada rótulo do documento oficial.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(cartaJsonLd()) }}
       />
       <script
         type="application/ld+json"

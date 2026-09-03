@@ -1,6 +1,6 @@
 import { WINES } from '@/data/generated/wines'
-import { MENU_ITEMS } from '@/data/generated/menu'
 import { COUNTRIES } from '@/data/countries'
+import { categoriasDaCozinha } from '@/lib/cozinha'
 import { FAQ } from '@/data/faq'
 import { CONTACTS, LOCATION, OPENING_HOURS, RESERVATION, SITE } from '@/data/site'
 
@@ -29,7 +29,7 @@ export async function GET() {
   const emTaca = WINES.filter((w) => w.servingType === 'taca')
   const emGarrafa = WINES.filter((w) => w.servingType === 'garrafa')
   const paises = [...new Set(WINES.map((w) => w.country).filter(Boolean))]
-  const pratos = MENU_ITEMS.filter((i) => i.section === 'Cardápio')
+  const cozinha = categoriasDaCozinha()
   const categoriasVinho = [...new Set(WINES.map((w) => w.category))]
   const precosTaca = emTaca.map((w) => w.price)
 
@@ -107,18 +107,24 @@ Outras origens na carta: ${paises
 
 ## A cozinha
 
-${pratos.length} pratos de cozinha contemporânea de influência mediterrânea, em ${
-    [...new Set(pratos.map((p) => p.category))].length
-  } categorias: ${[...new Set(pratos.map((p) => p.category))].join(', ')}.
+Cozinha contemporânea de influência mediterrânea, em ${cozinha.length} categorias.
 
-${pratos.filter((p) => p.pairings.length > 0).length} pratos trazem no cardápio a categoria de vinho com que harmonizam — a ponte entre a cozinha e a carta.
+Cada categoria traz no cardápio a categoria de vinho com que harmoniza — a
+ponte entre a cozinha e a carta:
+
+${cozinha.map((c) => `- ${c.nome}: ${c.vinhos.join(', ') || 'sem harmonização declarada'}`).join('\n')}
+
+Os pratos e os valores vigentes NÃO estão neste site: a casa troca o cardápio
+com frequência e mantém a versão atual no cardápio digital, em
+${RESERVATION.menuUrl}. Publicar aqui uma lista de preços seria publicar algo
+que envelhece entre uma visita e outra.
 
 ## Páginas
 
 - [Início](${SITE.url}/): a casa, as origens da carta, a cozinha, o jardim e a localização
-- [Cardápio](${SITE.url}/cardapio): ${MENU_ITEMS.length} itens com preço, descrição e harmonização
+- [Cardápio](${SITE.url}/cardapio): as ${cozinha.length} categorias da cozinha e a harmonização de cada uma
 - [Vinhos](${SITE.url}/vinhos): os ${WINES.length} rótulos, com filtro por origem, uva, corpo, preço e serviço
-- [Wine Match](${SITE.url}/wine-match): recomendação de vinho a partir do momento, do estilo, do prato e do orçamento
+- [Wine Match](${SITE.url}/wine-match): recomendação de vinho a partir do momento, do estilo e do orçamento
 
 ## Perguntas frequentes
 
@@ -126,8 +132,8 @@ ${perguntas}
 
 ## Sobre estes dados
 
-Preços, descrições e harmonizações vêm do cardápio oficial da casa e são
-conferidos contra ele automaticamente a cada build. Endereço, horário e
+Preços da carta, descrições e harmonizações vêm dos documentos oficiais da
+casa e são conferidos contra eles automaticamente a cada build. Endereço, horário e
 contatos foram verificados em fontes públicas (Receita Federal, site oficial,
 plataforma de reservas). Campos não confirmados são deixados vazios em vez de
 estimados — se um dado não aparece aqui, é porque não foi possível confirmá-lo.

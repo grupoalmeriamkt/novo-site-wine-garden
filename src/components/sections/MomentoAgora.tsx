@@ -104,15 +104,13 @@ export function MomentoAgora() {
           className={styles.sugestao}
           data-cursor="Ver"
           /*
-           * Sem prefetch. O destino muda a cada hora (a sugestão é do
-           * momento) e aponta para /cardapio, que é rota dinâmica: o prefetch
+           * Sem prefetch. O destino muda a cada hora (a sugestão é do momento)
+           * e aponta para /vinhos com busca, que é rota dinâmica: o prefetch
            * RSC dela fica pendurado e a página nunca atinge `networkidle`.
            * É um link secundário — não vale segurar o carregamento por ele.
            */
           prefetch={false}
-          onClick={() =>
-            track('menu_open', { category: sugestao.tipo === 'vinho' ? 'vinhos' : 'cardapio' })
-          }
+          onClick={() => track('menu_open', { category: 'vinhos' })}
         >
           <span className={styles.motivo}>{sugestao.motivo}</span>
           <span className={styles.item}>

@@ -2,8 +2,6 @@ import { Hero } from '@/components/sections/Hero'
 import { Manifesto } from '@/components/sections/Manifesto'
 import { Gastronomia } from '@/components/sections/Gastronomia'
 import { Pessoas } from '@/components/sections/Pessoas'
-import { Garden } from '@/components/sections/Garden'
-import { Experiencias } from '@/components/sections/Experiencias'
 import { Cartografia } from '@/components/sections/Cartografia'
 import { Eventos } from '@/components/sections/Eventos'
 import { Localizacao } from '@/components/sections/Localizacao'
@@ -48,16 +46,19 @@ export const metadata: Metadata = {
  *
  * A ordem é a narrativa, e cada passo responde ao anterior:
  *
- *  1. HERO         — o desejo. "Eu quero estar nesse lugar."
- *  2. MANIFESTO    — a premissa. Escolher é o assunto da casa.
- *  3. CARTOGRAFIA  — a viagem. Oito origens ligadas pela linha da marca.
- *  4. GASTRONOMIA  — a mesa, e a ponte de volta para a carta pela harmonização.
- *  5. PESSOAS      — com quem. O argumento social.
- *  6. O GARDEN     — onde, fisicamente. A única seção em Oliva.
- *  7. EXPERIÊNCIAS — quando voltar.
- *  8. EVENTOS      — a casa inteira, para uma ocasião.
- *  9. LOCALIZAÇÃO  — o fim da viagem é um endereço.
- * 10. PERGUNTAS    — o que ficou por responder, respondido.
+ * 1. HERO        — o desejo. "Eu quero estar nesse lugar."
+ * 2. MANIFESTO   — a premissa. Escolher é o assunto da casa.
+ * 3. CARTOGRAFIA — a viagem. Oito origens ligadas pela linha da marca.
+ * 4. GASTRONOMIA — a mesa, e a ponte de volta para a carta pela harmonização.
+ * 5. PESSOAS     — com quem. O argumento social.
+ * 6. EVENTOS     — a casa inteira, para uma ocasião.
+ * 7. LOCALIZAÇÃO — o fim da viagem é um endereço.
+ * 8. PERGUNTAS   — o que ficou por responder, respondido.
+ *
+ * O Garden e Experiências saíram a pedido da casa. A perda a cobrir era o
+ * espaço físico, que só aquelas seções mostravam: as fotos do jardim passaram
+ * para a Gastronomia e para a Localização, onde ainda respondem "como é estar
+ * lá" sem sustentar duas paradas inteiras da narrativa.
  *
  * As atmosferas alternam ao longo do percurso (noturna → editorial → terroir →
  * bege → intensa) para que o site nunca vire um bloco de bordô: é o ritmo de
@@ -84,8 +85,6 @@ export default function HomePage() {
       <Cartografia />
       <Gastronomia />
       <Pessoas />
-      <Garden />
-      <Experiencias />
       <Eventos />
       <Localizacao />
       <Perguntas />

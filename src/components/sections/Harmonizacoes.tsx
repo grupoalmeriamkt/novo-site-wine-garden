@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { Section } from '@/components/primitives/Section'
 import { EditorialHeading, MonoLabel, Prose } from '@/components/primitives/Typography'
-import { MENU_ITEMS } from '@/data/generated/menu'
 import { WINES } from '@/data/generated/wines'
-import { CATEGORY_SLUG, PAIRING_TO_CATEGORY } from '@/lib/wine-vocab'
+import { categoriasDaCozinha } from '@/lib/cozinha'
+import { CATEGORY_SLUG } from '@/lib/wine-vocab'
 import type { WineCategory } from '@/types/content'
 import styles from './Harmonizacoes.module.css'
 
@@ -21,28 +21,30 @@ import styles from './Harmonizacoes.module.css'
  * site: o cruzamento entre cozinha e carta que a casa escreveu no cardápio.
  *
  * NADA AQUI É INFERIDO. Cada linha vem do campo `pairings` do cardápio
- * oficial; o mapa `PAIRING_TO_CATEGORY` só reconcilia os três nomes que o
- * cardápio e a carta escrevem diferente. Se um prato não declara harmonização,
- * ele não aparece — não há palpite.
+ * oficial, agregado por CATEGORIA de cozinha — "Crudos", não "Ceviche de
+ * Pesce". Foi assim que a tabela sobreviveu à saída do cardápio do site: o
+ * nome de um prato pode não existir na semana que vem, mas a casa continua
+ * servindo crudos, e continua bebendo branco leve com eles.
  */
 
 type Linha = {
   categoria: WineCategory
   slug: string
-  pratos: readonly string[]
+  /** Categorias da cozinha que indicam esta categoria de vinho. */
+  cozinha: readonly string[]
   rotulos: number
 }
 
+/** Inverte o resumo da cozinha: de "categoria de prato → vinhos" para
+ *  "categoria de vinho → o que se come com ela". */
 function montarLinhas(): readonly Linha[] {
-  const porCategoria = new Map<WineCategory, string[]>()
+  const porVinho = new Map<WineCategory, string[]>()
 
-  for (const item of MENU_ITEMS) {
-    for (const pairing of item.pairings) {
-      const categoria = PAIRING_TO_CATEGORY[pairing]
-      if (!categoria) continue
-      const lista = porCategoria.get(categoria) ?? []
-      if (!lista.includes(item.name)) lista.push(item.name)
-      porCategoria.set(categoria, lista)
+  for (const { nome, vinhos } of categoriasDaCozinha()) {
+    for (const vinho of vinhos) {
+      const lista = porVinho.get(vinho) ?? []
+      if (!lista.includes(nome)) lista.push(nome)
+      porVinho.set(vinho, lista)
     }
   }
 
@@ -51,19 +53,17 @@ function montarLinhas(): readonly Linha[] {
   const ordem = [...new Set(WINES.map((w) => w.category))]
 
   return ordem
-    .filter((categoria) => porCategoria.has(categoria))
+    .filter((categoria) => porVinho.has(categoria))
     .map((categoria) => ({
       categoria,
       slug: CATEGORY_SLUG[categoria],
-      pratos: porCategoria.get(categoria) ?? [],
+      cozinha: porVinho.get(categoria) ?? [],
       rotulos: WINES.filter((w) => w.category === categoria).length,
     }))
 }
 
 const LINHAS = montarLinhas()
-const TOTAL_PRATOS = new Set(
-  MENU_ITEMS.filter((i) => i.pairings.length > 0).map((i) => i.name),
-).size
+const TOTAL_COZINHA = categoriasDaCozinha().length
 
 export function Harmonizacoes() {
   return (
@@ -77,9 +77,9 @@ export function Harmonizacoes() {
             O que a cozinha <em className={styles.italic}>já respondeu</em>
           </EditorialHeading>
           <Prose muted className={styles.lead}>
-            O Wine Match não adivinha: ele parte das {TOTAL_PRATOS} harmonizações que o cardápio já
-            declara. Cada prato abaixo traz a categoria de vinho que a casa indicou — e cada
-            categoria leva à parte da carta correspondente.
+            A casa indica, no cardápio, com que vinho cada uma das {TOTAL_COZINHA} categorias da
+            cozinha harmoniza. A tabela abaixo lê isso ao contrário: comece pelo vinho e veja o que
+            se come com ele. Cada categoria leva à parte correspondente da carta.
           </Prose>
         </header>
 
@@ -97,15 +97,15 @@ export function Harmonizacoes() {
                 </MonoLabel>
               </div>
               <p className={styles.pratos}>
-                Harmoniza com {linha.pratos.join(', ')}.
+                Indicado no cardápio para {linha.cozinha.join(', ').toLowerCase()}.
               </p>
             </article>
           ))}
         </div>
 
         <Prose size="sm" muted className={styles.nota}>
-          Harmonizações impressas no cardápio oficial do Wine Garden. Pratos sem indicação não
-          aparecem nesta tabela.
+          Harmonizações impressas no cardápio oficial do Wine Garden. Os pratos e os valores de
+          hoje ficam no cardápio digital, que a casa mantém atualizado.
         </Prose>
       </div>
     </Section>

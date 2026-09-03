@@ -1,9 +1,9 @@
 import { CONTACTS, LOCATION, OPENING_HOURS_SCHEMA, RESERVATION, SITE } from '@/data/site'
-import { MENU_ITEMS } from '@/data/generated/menu'
 import { WINES } from '@/data/generated/wines'
 import { COUNTRIES } from '@/data/countries'
 import { FAQ } from '@/data/faq'
-import { CATEGORY_SLUG, PAIRING_TO_CATEGORY } from '@/lib/wine-vocab'
+import { CATEGORY_SLUG } from '@/lib/wine-vocab'
+import { categoriasDaCozinha } from '@/lib/cozinha'
 
 /**
  * Dados estruturados.
@@ -28,16 +28,6 @@ export function restaurantJsonLd(): JsonLd {
   const phone = CONTACTS.find((c) => c.label === 'Telefone')
   const whats = CONTACTS.find((c) => c.label === 'WhatsApp')
 
-  /*
-   * FAIXA DE PREÇO — calculada, nunca estimada.
-   *
-   * `priceRange` responde "quanto custa comer aqui", então a conta é feita
-   * sobre os PRATOS do cardápio, não sobre a carta: a garrafa mais cara
-   * distorceria o teto e passaria uma informação errada a quem lê o resultado
-   * de busca. `$$` sem lastro seria chute; este número sai do documento
-   * oficial e muda sozinho quando o cardápio muda.
-   */
-  const precosPratos = MENU_ITEMS.filter((i) => i.section === 'Cardápio').map((i) => i.price)
   const paises = [...new Set(WINES.map((w) => w.country).filter(Boolean))]
 
   return {
@@ -80,7 +70,15 @@ export function restaurantJsonLd(): JsonLd {
     ],
     servesCuisine: ['Contemporânea', 'Mediterrânea', 'Wine bar'],
     acceptsReservations: RESERVATION.url,
-    hasMenu: { '@id': `${SITE.url}/cardapio#menu` },
+    /*
+     * `hasMenu` aponta para a PÁGINA, não para um objeto Menu com itens.
+     *
+     * O grafo já trouxe os 245 itens com preço, e foi removido junto com o
+     * cardápio do site: a casa troca os pratos com frequência, e preço em dado
+     * estruturado é exibido pelo Google como fato — um preço vencido ali é
+     * desinformação sobre um negócio real, não um detalhe desatualizado.
+     */
+    hasMenu: `${SITE.url}/cardapio`,
     currenciesAccepted: 'BRL',
     /*
      * O que a casa OFERECE, em termos que uma busca por linguagem natural usa.
@@ -96,9 +94,6 @@ export function restaurantJsonLd(): JsonLd {
       { '@type': 'LocationFeatureSpecification', name: 'Happy hour', value: true },
       { '@type': 'LocationFeatureSpecification', name: 'Eventos privados', value: true },
     ],
-    ...(precosPratos.length > 0
-      ? { priceRange: `R$ ${Math.min(...precosPratos)}–${Math.max(...precosPratos)}` }
-      : {}),
     ...(whats
       ? {
           contactPoint: {
@@ -207,97 +202,80 @@ export function wineOriginsJsonLd(): JsonLd {
  * As harmonizações que a casa declara, como dado estruturado.
  *
  * É a informação mais citável do site: quando alguém pergunta a um assistente
- * "com que vinho eu acompanho um filé au poivre", a resposta útil é a que traz
- * a indicação de uma casa real, e não uma regra genérica de enologia.
+ * "com que vinho eu acompanho um crudo", a resposta útil é a que traz a
+ * indicação de uma casa real, e não uma regra genérica de enologia.
  *
- * Cada par vem do campo `pairings` do cardápio oficial. Prato sem indicação
- * fica de fora — não há inferência aqui.
+ * Agregado por CATEGORIA da cozinha, e não por prato, porque a categoria
+ * sobrevive à próxima troca de cardápio — ver `lib/cozinha.ts`.
  */
 export function harmonizacoesJsonLd(): JsonLd {
-  const porCategoria = new Map<string, string[]>()
-  for (const item of MENU_ITEMS) {
-    for (const pairing of item.pairings) {
-      const categoria = PAIRING_TO_CATEGORY[pairing]
-      if (!categoria) continue
-      const lista = porCategoria.get(categoria) ?? []
-      if (!lista.includes(item.name)) lista.push(item.name)
-      porCategoria.set(categoria, lista)
+  const porVinho = new Map<string, string[]>()
+  for (const { nome, vinhos } of categoriasDaCozinha()) {
+    for (const vinho of vinhos) {
+      const lista = porVinho.get(vinho) ?? []
+      if (!lista.includes(nome)) lista.push(nome)
+      porVinho.set(vinho, lista)
     }
   }
 
-  const entradas = [...porCategoria.entries()]
+  const entradas = [...porVinho.entries()]
 
   return {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     '@id': `${SITE.url}/wine-match#harmonizacoes`,
     name: `Harmonizações do ${SITE.name}`,
-    description: `Categoria de vinho indicada pelo cardápio do ${SITE.name} para cada prato.`,
+    description: `Categoria de vinho indicada pelo cardápio do ${SITE.name} para cada categoria da cozinha.`,
     numberOfItems: entradas.length,
-    itemListElement: entradas.map(([categoria, pratos], index) => ({
+    itemListElement: entradas.map(([categoria, cozinha], index) => ({
       '@type': 'ListItem',
       position: index + 1,
       name: categoria,
-      description: `Harmoniza com ${pratos.join(', ')}.`,
+      description: `Indicado no cardápio para ${cozinha.join(', ').toLowerCase()}.`,
       url: `${SITE.url}/vinhos?categoria=${CATEGORY_SLUG[categoria as keyof typeof CATEGORY_SLUG]}`,
     })),
   }
 }
 
 /**
- * Menu completo em schema.org. Cada seção vira MenuSection e cada item traz o
- * preço real do cardápio oficial.
+ * A CARTA como Menu do schema.org.
+ *
+ * Sucedeu o `menuJsonLd`, que publicava o cardápio inteiro — 245 itens com
+ * preço. A comida saiu porque muda toda semana; a carta ficou porque não: um
+ * rótulo entra e sai da adega, mas o dado publicado é conferido contra o
+ * documento oficial a cada build, e é exatamente o que alguém procura quando
+ * pergunta a um assistente onde beber um Malbec em Brasília.
  */
-export function menuJsonLd(): JsonLd {
-  const bySection = new Map<string, typeof MENU_ITEMS>()
-  for (const item of MENU_ITEMS) {
-    const list = bySection.get(item.category) ?? []
-    bySection.set(item.category, [...list, item] as typeof MENU_ITEMS)
-  }
-
-  const wineSection = {
-    '@type': 'MenuSection',
-    name: 'Vinhos',
-    description: `${WINES.length} rótulos de ${new Set(WINES.map((w) => w.country).filter(Boolean)).size} países.`,
-    hasMenuItem: WINES.map((wine) => ({
-      '@type': 'MenuItem',
-      name: wine.name,
-      ...(wine.description ? { description: wine.description } : {}),
-      offers: {
-        '@type': 'Offer',
-        price: wine.price.toFixed(2),
-        priceCurrency: 'BRL',
-      },
-    })),
+export function cartaJsonLd(): JsonLd {
+  const porCategoria = new Map<string, typeof WINES>()
+  for (const wine of WINES) {
+    const lista = porCategoria.get(wine.category) ?? []
+    porCategoria.set(wine.category, [...lista, wine] as typeof WINES)
   }
 
   return {
     '@context': 'https://schema.org',
     '@type': 'Menu',
-    '@id': `${SITE.url}/cardapio#menu`,
-    name: `Cardápio ${SITE.name}`,
+    '@id': `${SITE.url}/vinhos#carta`,
+    name: `Carta de vinhos ${SITE.name}`,
+    description: `${WINES.length} rótulos de ${new Set(WINES.map((w) => w.country).filter(Boolean)).size} países.`,
     inLanguage: 'pt-BR',
-    hasMenuSection: [
-      ...[...bySection.entries()].map(([name, items]) => ({
-        '@type': 'MenuSection',
-        name,
-        hasMenuItem: items.map((item) => ({
-          '@type': 'MenuItem',
-          name: item.name,
-          ...(item.description ? { description: item.description } : {}),
-          ...(item.vegan || item.glutenFree
-            ? {
-                suitableForDiet: [
-                  ...(item.vegan ? ['https://schema.org/VeganDiet'] : []),
-                  ...(item.glutenFree ? ['https://schema.org/GlutenFreeDiet'] : []),
-                ],
-              }
-            : {}),
-          offers: { '@type': 'Offer', price: item.price.toFixed(2), priceCurrency: 'BRL' },
-        })),
+    hasMenuSection: [...porCategoria.entries()].map(([nome, rotulos]) => ({
+      '@type': 'MenuSection',
+      name: nome,
+      hasMenuItem: rotulos.map((wine) => ({
+        '@type': 'MenuItem',
+        name: wine.name,
+        ...(wine.description ? { description: wine.description } : {}),
+        offers: {
+          '@type': 'Offer',
+          price: wine.price.toFixed(2),
+          priceCurrency: 'BRL',
+          /* O formato de serviço é o que distingue duas linhas do mesmo rótulo. */
+          ...(wine.servingType === 'taca' ? { eligibleQuantity: { '@type': 'QuantitativeValue', value: 150, unitCode: 'MLT' } } : {}),
+        },
       })),
-      wineSection,
-    ],
+    })),
   }
 }
 
