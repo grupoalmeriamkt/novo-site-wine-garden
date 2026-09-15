@@ -178,15 +178,30 @@ export const RESERVATION = {
 /**
  * Eventos privados — o canal comercial da casa.
  *
- * Número informado pelo cliente em 03/09/2026, e é PARA ONDE VAI O FORMULÁRIO:
- * é a linha do comercial de eventos, distinta do WhatsApp de reservas. Trocar
- * este valor redireciona todos os leads de evento; não alterar sem confirmação.
+ * Número definido pela casa em 15/09/2026. É PARA ONDE VAI O FORMULÁRIO de
+ * eventos: trocar este valor redireciona todos os leads. Não alterar sem
+ * confirmação.
+ *
+ * `phone` leva o DDI 55. O link repassado pela casa veio como `phone=61…`, e o
+ * WhatsApp lê o número em formato internacional: sem o 55, "61" é o código da
+ * Austrália e a conversa abriria com um número de outro país.
  */
 export const EVENTS_CONTACT = {
-  whatsapp: 'https://wa.me/5561993378338',
-  label: '(61) 99337-8338',
+  phone: '5561998117063',
+  label: '(61) 99811-7063',
   verified: true,
 } as const
+
+/**
+ * Link do WhatsApp de eventos, no formato `api.whatsapp.com/send` pedido pela
+ * casa, com a mensagem já escrita em `text`. Sem texto, abre a conversa vazia.
+ *
+ * `encodeURIComponent` e não `URLSearchParams`: este converte espaço em `+`, e
+ * alguns clientes do WhatsApp mostram o `+` literal na mensagem.
+ */
+export function whatsappEventosUrl(texto = ''): string {
+  return `https://api.whatsapp.com/send/?phone=${EVENTS_CONTACT.phone}&text=${encodeURIComponent(texto)}&type=phone_number&app_absent=0`
+}
 
 /**
  * A navegação.

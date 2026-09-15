@@ -5,7 +5,7 @@ import { Section } from '@/components/primitives/Section'
 import { Reveal } from '@/components/primitives/Reveal'
 import { EditorialHeading, MonoLabel, Prose } from '@/components/primitives/Typography'
 import { useGsapOn } from '@/hooks/useGsap'
-import { EVENTS_CONTACT, RESERVATION } from '@/data/site'
+import { EVENTS_CONTACT, RESERVATION, whatsappEventosUrl } from '@/data/site'
 import { EXPERIENCES } from '@/data/photos'
 import { track } from '@/lib/analytics'
 import styles from './Eventos.module.css'
@@ -17,10 +17,9 @@ import styles from './Eventos.module.css'
  * responde "recebemos seu pedido!" sem enviar nada a lugar nenhum é pior que
  * não ter formulário — a pessoa vai embora achando que foi atendida.
  *
- * Então o envio é REAL, só que pelo canal que a casa de fato publica: o
- * WhatsApp de eventos do Linktree oficial. O formulário monta a mensagem já
- * redigida e abre a conversa. Quem recebe é uma pessoa, não um endpoint
- * inexistente.
+ * Então o envio é REAL, só que pelo canal comercial que a casa definiu: o
+ * WhatsApp de eventos. O formulário monta a mensagem com todos os campos e
+ * abre a conversa. Quem recebe é uma pessoa, não um endpoint inexistente.
  *
  * PARA PLUGAR UM BACKEND DEPOIS: troque `handleSubmit` por um `fetch` para a
  * rota de API, mantendo a validação e os estados de erro que já estão aqui. O
@@ -66,25 +65,30 @@ function validate(form: FormState): Errors {
   return errors
 }
 
-/** Monta a mensagem que abre no WhatsApp já redigida. */
+/**
+ * Monta a mensagem que abre no WhatsApp já redigida.
+ *
+ * TODO CAMPO VAI, SEMPRE, NA MESMA ORDEM — inclusive os opcionais em branco,
+ * que saem como "Não informado". Quem atende no comercial lê dezenas destas: a
+ * mesma estrutura em toda mensagem é o que deixa bater o olho e achar a data
+ * ou o número de pessoas sem precisar ler tudo. Os asteriscos são o negrito do
+ * próprio WhatsApp.
+ */
 function buildMessage(form: FormState): string {
-  const linhas = [
+  // O input date devolve AAAA-MM-DD; quem lê a mensagem espera DD/MM/AAAA.
+  const [ano, mes, dia] = form.data.split('-')
+  const data = ano && mes && dia ? `${dia}/${mes}/${ano}` : 'Não informada'
+
+  return [
     'Olá! Gostaria de fazer um evento no Wine Garden.',
     '',
-    `Nome: ${form.nome.trim()}`,
-    `Contato: ${form.contato.trim()}`,
-    `Tipo: ${form.tipo}`,
-    `Pessoas: ${form.pessoas}`,
-  ]
-  if (form.data) {
-    // O input date devolve AAAA-MM-DD; quem lê a mensagem espera DD/MM.
-    const [ano, mes, dia] = form.data.split('-')
-    if (ano && mes && dia) linhas.push(`Data pretendida: ${dia}/${mes}/${ano}`)
-  }
-  if (form.mensagem.trim()) {
-    linhas.push('', form.mensagem.trim())
-  }
-  return linhas.join('\n')
+    `*Nome:* ${form.nome.trim()}`,
+    `*Telefone ou e-mail:* ${form.contato.trim()}`,
+    `*Tipo de evento:* ${form.tipo}`,
+    `*Pessoas:* ${form.pessoas}`,
+    `*Data pretendida:* ${data}`,
+    `*Sobre o evento:* ${form.mensagem.trim() || 'Não informado'}`,
+  ].join('\n')
 }
 
 export function Eventos() {
@@ -135,7 +139,7 @@ export function Eventos() {
     }
 
     track('event_lead', { channel: 'whatsapp' })
-    const url = `${EVENTS_CONTACT.whatsapp}?text=${encodeURIComponent(buildMessage(form))}`
+    const url = whatsappEventosUrl(buildMessage(form))
     window.open(url, '_blank', 'noopener,noreferrer')
     setSubmitted(true)
   }
@@ -182,7 +186,7 @@ export function Eventos() {
               Ou fale direto
             </MonoLabel>
             <a
-              href={EVENTS_CONTACT.whatsapp}
+              href={whatsappEventosUrl()}
               target="_blank"
               rel="noopener noreferrer"
               className={styles.directLink}
