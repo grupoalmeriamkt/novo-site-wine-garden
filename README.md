@@ -77,7 +77,6 @@ Resumo:
 | `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` | Se usar o mapa | `AdvancedMarkerElement` não renderiza o marcador |
 | `NEXT_PUBLIC_WINE_GARDEN_PLACE_ID` | Não | "Como chegar" usa só lat/lng |
 | `NEXT_PUBLIC_WINE_GARDEN_LAT` / `_LNG` | Não | Usa as coordenadas em `src/data/site.ts` |
-| `NEXT_PUBLIC_RESERVATION_URL` | Não | Usa a URL real do GetIn |
 | `NEXT_PUBLIC_GTM_ID` | Não | Eventos vão para `dataLayer` e são descartados |
 
 > **Nunca** coloque uma chave de servidor com o prefixo `NEXT_PUBLIC_`. Esse

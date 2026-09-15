@@ -80,6 +80,21 @@ export const SITE = {
   locale: 'pt-BR',
 } as const
 
+/**
+ * Lê uma coordenada de variável de ambiente sem aceitar lixo.
+ *
+ * Era `Number(env ?? padrão)`, e em produção isso publicou o Wine Garden em
+ * 0,0 — no Golfo da Guiné — no JSON-LD e no "Como chegar": a variável existia
+ * VAZIA na Vercel, o `??` a deixou passar e `Number('')` vale 0, não NaN.
+ * Vazio, não numérico ou fora da faixa válida cai no padrão verificado.
+ */
+function coordenada(bruto: string | undefined, padrao: number, limite: number): number {
+  const valor = bruto?.trim()
+  if (!valor) return padrao
+  const n = Number(valor)
+  return Number.isFinite(n) && n !== 0 && Math.abs(n) <= limite ? n : padrao
+}
+
 export const LOCATION = {
   /** Grafia da Receita Federal, do site oficial e da ficha do Google. */
   street: 'SHIS QL 10, Lote 24',
@@ -94,8 +109,8 @@ export const LOCATION = {
    * O GetIn publica um par ~310 m a oeste; ambos caem dentro do Pontão.
    * Sobrescreva por ambiente se o cliente indicar o pin exato.
    */
-  lat: Number(process.env.NEXT_PUBLIC_WINE_GARDEN_LAT ?? -15.825931),
-  lng: Number(process.env.NEXT_PUBLIC_WINE_GARDEN_LNG ?? -47.871311),
+  lat: coordenada(process.env.NEXT_PUBLIC_WINE_GARDEN_LAT, -15.825931, 90),
+  lng: coordenada(process.env.NEXT_PUBLIC_WINE_GARDEN_LNG, -47.871311, 180),
   /**
    * Place ID obtido de espelho público (Wanderlog), NÃO verificado direto no
    * Google. Fica em variável de ambiente justamente para não ir a produção
@@ -144,7 +159,17 @@ export const CONTACTS: readonly SiteContact[] = [
  */
 export const RESERVATION = {
   provider: 'GetIn',
-  url: process.env.NEXT_PUBLIC_RESERVATION_URL ?? 'https://www.getin.app/brasilia/izzi-wine-garden',
+  /**
+   * FIXO NO CÓDIGO, de propósito — definido pela casa em 15/09/2026.
+   *
+   * Já foi `process.env.NEXT_PUBLIC_RESERVATION_URL ?? <este endereço>`, e isso
+   * quebrou em produção: a variável existia VAZIA no painel da Vercel, o `??`
+   * deixou a string vazia passar, e os seis botões de reserva do site saíram
+   * com `href=""` — clicavam e não iam a lugar nenhum. É o CTA de conversão do
+   * site inteiro; não pode depender de um campo de painel. Não é credencial,
+   * então não há motivo para vir de variável de ambiente.
+   */
+  url: 'https://www.getin.app/brasilia/izzi-wine-garden',
   /** Cardápio digital oficial — origem dos dados em src/data/menu.ts. */
   menuUrl: 'https://menu.getin.app/store/O6OadgPa/1',
   maxPartySize: 20,

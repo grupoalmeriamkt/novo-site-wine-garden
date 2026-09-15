@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { WINES } from '../src/data/generated/wines.ts'
 import { FAQ } from '../src/data/faq.ts'
-import { SITE } from '../src/data/site.ts'
+import { LOCATION, RESERVATION, SITE } from '../src/data/site.ts'
 import {
   cartaJsonLd,
   faqJsonLd,
@@ -24,6 +24,22 @@ import { categoriasDaCozinha } from '../src/lib/cozinha.ts'
 type Json = Record<string, unknown>
 
 describe('dado estruturado', () => {
+  /*
+   * Os dois testes abaixo existem porque produção quebrou assim: variáveis
+   * criadas VAZIAS no painel da Vercel passaram pelo `??`. O resultado foi
+   * href="" nos seis botões de reserva e o Wine Garden publicado em 0,0.
+   * Localmente tudo passava, porque aqui as variáveis nem existem.
+   */
+  it('a reserva leva sempre à página da casa no GetIn', () => {
+    assert.equal(RESERVATION.url, 'https://www.getin.app/brasilia/izzi-wine-garden')
+  })
+
+  it('as coordenadas ficam no Pontão do Lago Sul, nunca em 0,0', () => {
+    // Caixa folgada em torno do Lago Sul — o que importa é não cair fora de Brasília.
+    assert.ok(LOCATION.lat < -15.7 && LOCATION.lat > -15.95, `latitude ${LOCATION.lat}`)
+    assert.ok(LOCATION.lng < -47.75 && LOCATION.lng > -47.95, `longitude ${LOCATION.lng}`)
+  })
+
   /*
    * Esta foi a causa de uma quebra de deploy: `NEXT_PUBLIC_SITE_URL` existia no
    * painel mas estava VAZIA, o `??` deixou passar, e `new URL('')` derrubou a
